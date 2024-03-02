@@ -1,11 +1,22 @@
 import logo from './logo.svg';
 import './App.css';
-import DocumentCardComponent from './Components/Card';
+import {BrowserRouter,Routes,Route} from 'react-router-dom'
+import Login from './Pages/Login';
 function App() {
   return (
-    <div className="App">
-    <DocumentCardComponent/>
+  <div className='App'>
+   <BrowserRouter>
+   <Routes>
+   <Route path='/login' element={<Login/>}/>
+   
+   
+   </Routes>
+   
+   
+   
+   </BrowserRouter>
    </div>
+  
   );
 }
 

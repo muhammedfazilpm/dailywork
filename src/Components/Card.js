@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import {Link} from  'react-router-dom'
 import { workerLogin } from '../Services.js/WorkerApi';
 import toast from 'react-hot-toast';
+import { Navigate } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 const DocumentCardComponent = () => {
   const navigate=useNavigate()
@@ -18,9 +19,11 @@ const DocumentCardComponent = () => {
      toast.error(response.data.message)
     }
     else{
-      toast.success(response.data.message)
+      toast.success(response.data.message);
       localStorage.setItem('token', response.data.token);
-      navigate('/home')
+       navigate("/home")
+       window.location.reload()
+     
     }
    } catch (error) {
     alert(error)

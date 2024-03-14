@@ -44,17 +44,7 @@ function Slider() {
         ))}
       </div>
       <div className="flex justify-center w-full py-2 gap-2">
-        <button className="btn btn-xs" onClick={prevSlide}>Prev</button>
-        {slides.map((_, index) => (
-          <button
-            key={index}
-            className={`btn btn-xs ${index === currentSlide ? 'btn-active' : ''}`}
-            onClick={() => setCurrentSlide(index)}
-          >
-            {index + 1}
-          </button>
-        ))}
-        <button className="btn btn-xs" onClick={nextSlide}>Next</button>
+       
       </div>
       <div  className='row'>
       

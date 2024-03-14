@@ -1,10 +1,13 @@
 
+// let workapi="http://localhost:5000"
 
-let workerRegister='http://localhost:5000/api/worker/register/'
+let workapi="https://dailyworkback.vercel.app"
 
-let workerLogin='http://localhost:5000/api/worker/login/'
+let workerRegister=workapi+'/api/worker/register/'
 
-let workerauth='http://localhost:5000/api/workers/auth'
+let workerLogin=workapi+'/api/worker/login/'
+
+let workerauth=workapi+'/api/workers/auth'
 
 
 

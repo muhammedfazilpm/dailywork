@@ -7,6 +7,7 @@ function Home() {
     <div className='w-full'>
      <Navbar/>
      <Slider/>
+     hello
     </div>
   )
 }

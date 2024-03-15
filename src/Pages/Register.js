@@ -30,7 +30,7 @@ function Register() {
         console.log(error)
         
 
-        toast.error("servor issue")
+        toast.error("server error try again")
         
       }
   

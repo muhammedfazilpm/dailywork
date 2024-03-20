@@ -3,9 +3,11 @@ import { useState } from 'react'
 import toast from 'react-hot-toast';
 import axios from 'axios';
 import {workerotp} from '../Services.js/WorkerApi'
+import { useNavigate } from 'react-router-dom';
 
 
 const Otp = () => {
+    const navigate=useNavigate()
 const[otp,setOtp]=useState("")
 let email=localStorage.getItem("todayemail")
 const handleSubmit= async()=>{
@@ -15,7 +17,14 @@ return
     }
 let data={email,otp}
 const response=await axios.post(workerotp,{data})
+if(response.data.success){
 
+    toast.success(response.data.message)
+
+}
+else{
+toast.error(response.data.message)
+}
 }
 
 

@@ -20,7 +20,8 @@ function Register() {
         if(response.data.success===true){
           console.log(response.data.message,"mes")
          toast.success(response.data.message)
-        navigate('/login')
+         localStorage.setItem('todayemail',response.data.email)
+        navigate('/otp')
         }
         else{
          toast.error(response.data.message)

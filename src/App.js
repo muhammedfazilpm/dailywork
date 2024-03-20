@@ -7,6 +7,7 @@ import {Toaster} from 'react-hot-toast'
 import Home from './Pages/Home';
 import Protectedroutes from './Auth/Protectedroutes';
 import Publicroutes from './Auth/Publicroutes';
+import Otp from './Pages/Otp';
 function App() {
   return (
   <div className='App'>
@@ -17,6 +18,7 @@ function App() {
    <Route path='/login' element={<Publicroutes><Login/></Publicroutes>}/>
    <Route path='/register' element={<Register/>}/>
    <Route path='/home' element={<Protectedroutes><Home/></Protectedroutes>}/>
+   <Route path='/otp' element={<Otp/>}/>
    
    </Routes>
    

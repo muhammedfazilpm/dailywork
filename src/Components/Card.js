@@ -16,6 +16,7 @@ const DocumentCardComponent = () => {
     let formData={email,password}
     const response=await axios.post(workerLogin,{formData})
     if(response.data.success==false){
+      console.log(response.data.message)
      toast.error(response.data.message)
     }
     else{
@@ -26,7 +27,8 @@ const DocumentCardComponent = () => {
      
     }
    } catch (error) {
-    alert(error)
+    console.log(error)
+  
    }
  
   };

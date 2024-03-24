@@ -18,7 +18,7 @@ return
 let data={email,otp}
 const response=await axios.post(workerotp,{data})
 if(response.data.success){
-
+localStorage.removeItem("todayemail")
     toast.success(response.data.message)
 
 }

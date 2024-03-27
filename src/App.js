@@ -8,6 +8,8 @@ import Home from './Pages/Home';
 import Protectedroutes from './Auth/Protectedroutes';
 import Publicroutes from './Auth/Publicroutes';
 import Otp from './Pages/Otp';
+import Profile from './Pages/Profile';
+import Addprofiles from './Pages/Addprofiles';
 function App() {
   return (
   <div className='App'>
@@ -19,7 +21,10 @@ function App() {
    <Route path='/register' element={<Register/>}/>
    <Route path='/home' element={<Protectedroutes><Home/></Protectedroutes>}/>
    <Route path='/otp' element={<Otp/>}/>
-   
+   <Route path='/profile' element={<Protectedroutes><Profile/></Protectedroutes>}/>
+   <Route path='/addprofile' element={<Protectedroutes><Addprofiles/></Protectedroutes>}/>
+
+
    </Routes>
    
    

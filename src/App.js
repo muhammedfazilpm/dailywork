@@ -10,6 +10,7 @@ import Publicroutes from './Auth/Publicroutes';
 import Otp from './Pages/Otp';
 import Profile from './Pages/Profile';
 import Addprofiles from './Pages/Addprofiles';
+import Mobileotp from './Pages/Mobileotp';
 function App() {
   return (
   <div className='App'>
@@ -23,6 +24,8 @@ function App() {
    <Route path='/otp' element={<Otp/>}/>
    <Route path='/profile' element={<Protectedroutes><Profile/></Protectedroutes>}/>
    <Route path='/addprofile' element={<Protectedroutes><Addprofiles/></Protectedroutes>}/>
+   <Route path='/mobileotp' element={<Protectedroutes><Mobileotp/></Protectedroutes>}/>
+
 
 
    </Routes>

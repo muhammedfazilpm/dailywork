@@ -11,11 +11,14 @@ let workerauth=workapi+'/api/workers/auth'
 
 let workerotp=workapi+'/api/worker/checkotp'
 
+let workProfileupload=workapi+'/api/worker/setProfile'
+
 
 
 module.exports={
     workerRegister,
     workerLogin,
     workerauth,
-    workerotp
+    workerotp,
+    workProfileupload
 }

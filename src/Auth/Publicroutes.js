@@ -12,7 +12,6 @@ const Publicroutes = (props) => {
     const checkWorker = async () => {
       try {
         const res = await axios.post(workerauth, {}, { headers });
-        console.log(res.data.success,"success public")
         if (!res.data.success) {
          navigate('/login')
         } else {

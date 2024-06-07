@@ -4,11 +4,13 @@ import axios from 'axios';
 import { workProfileupload } from '../Services.js/WorkerApi';
 import { useNavigate } from 'react-router-dom';
 
+
 const Addprofiles = () => {
   const [aadarName, setAadarName] = useState('');
   const [aadarNumber, setAadarNumber] = useState('');
   const [phone, setPhone] = useState('');
   const [file, setFile] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate=useNavigate()
 
   const token = localStorage.getItem('token');
@@ -16,6 +18,13 @@ const Addprofiles = () => {
   const handleChange = (event) => {
     const selectedFile = event.target.files[0];
     setFile(selectedFile);
+  };
+
+  const handleOpenModal = () => {
+    setIsModalOpen(true);
+  };
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
   };
 
   const handleSubmit = async () => {
@@ -62,6 +71,8 @@ const Addprofiles = () => {
             <label htmlFor="aadarNumber" className="block text-sm font-medium text-gray-700">Aadhar Number</label>
             <input onChange={(e) => setAadarNumber(e.target.value)} type="text" id="aadarNumber" name="aadarNumber" className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50"/>
           </div>
+
+          
           <div className="mb-4">
             <label htmlFor="phone" className="block text-sm font-medium text-gray-700">Phone Number</label>
             <input onChange={(e) => setPhone(e.target.value)} type="text" id="phone" name="phone" className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50"/>

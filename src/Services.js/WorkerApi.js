@@ -1,7 +1,7 @@
 
-// let workapi="http://localhost:5000"
+let workapi="http://localhost:5000"
 
-let workapi="https://dailyworkback.vercel.app"
+// let workapi="https://dailyworkback.vercel.app"
 
 let workerRegister=workapi+'/api/worker/register/'
 
@@ -13,6 +13,12 @@ let workerotp=workapi+'/api/worker/checkotp'
 
 let workProfileupload=workapi+'/api/worker/setProfile'
 
+let workerprofileget=workapi+'/api/worker/getprofile'
+
+let workerjobadd=workapi+'/api/worker/addjobs'
+
+let workerjobclear=workapi+'/api/worker/clearjobs'
+
 
 
 module.exports={
@@ -20,5 +26,8 @@ module.exports={
     workerLogin,
     workerauth,
     workerotp,
-    workProfileupload
+    workProfileupload,
+    workerprofileget,
+    workerjobadd,
+    workerjobclear
 }

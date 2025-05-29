@@ -20,6 +20,7 @@ const response=await axios.post(workerotp,{data})
 if(response.data.success){
 localStorage.removeItem("todayemail")
     toast.success(response.data.message)
+    navigate('/login')
 
 }
 else{
@@ -63,7 +64,7 @@ toast.error(response.data.message)
 
     <span className="text-m text-gray-500 dark:text-gray-400">Enter the email otp</span>
     <div className="flex mt-4 md:mt-6">
-        <a onClick={handleSubmit}  className="inline-flex items-center px-4 py-2 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Add friend</a>
+        <a onClick={handleSubmit}  className="inline-flex items-center px-4 py-2 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Save</a>
     </div>
 </div>
 </div>

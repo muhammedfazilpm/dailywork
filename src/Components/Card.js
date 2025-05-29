@@ -1,79 +1,104 @@
 import axios from 'axios';
 import React, { useState } from 'react';
-import {Link} from  'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom';
 import { workerLogin } from '../Services.js/WorkerApi';
 import toast from 'react-hot-toast';
-import { Navigate } from 'react-router-dom';
-import { useNavigate } from 'react-router-dom';
+
 const DocumentCardComponent = () => {
-  const navigate=useNavigate()
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleSubmit =async (e) => {
-   try {
-    e.preventDefault();
-    let formData={email,password}
-    const response=await axios.post(workerLogin,{formData})
-    if(response.data.success==false){
-      console.log(response.data.message)
-     toast.error(response.data.message)
+  const handleSubmit = async (e) => {
+    try {
+      e.preventDefault();
+      let formData = { email, password };
+      const response = await axios.post(workerLogin, { formData });
+      if (response.data.success === false) {
+        toast.error(response.data.message);
+      } else {
+        toast.success(response.data.message);
+        localStorage.setItem('token', response.data.token);
+        navigate('/home');
+        window.location.reload();
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error('An error occurred. Please try again.');
     }
-    else{
-      toast.success(response.data.message);
-      localStorage.setItem('token', response.data.token);
-       navigate("/home")
-       window.location.reload()
-     
-    }
-   } catch (error) {
-    console.log(error)
-  
-   }
- 
   };
 
   return (
-    <div className=" max-w-5/6 flex justify-center mx-auto mt-7">
-      <div className="bg-white w-5/6 shadow-md border text-black border-gray-200 rounded-lg  p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen w-full flex items-center justify-center bg-blue-50">
+      <div className="bg-white w-full max-w-md shadow-2xl rounded-lg p-8">
         <form className="space-y-6" onSubmit={handleSubmit}>
-          <h3 className="text-3xl font-bold  text-blue-500">Welcome to Daily Work</h3>
+          {/* Heading */}
+          <h3 className="text-3xl font-bold text-blue-600 text-center mb-8">
+            Welcome to Daily Work
+          </h3>
+
+          {/* Email Input */}
           <div>
-            <label htmlFor="email" className="text-sm font-medium text-black block mb-2">Your email</label>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+              Your Email
+            </label>
             <input
               type="email"
               id="email"
-              className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:border-gray-5000"
+              className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
               placeholder="name@company.com"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
           </div>
+
+          {/* Password Input */}
           <div>
-            <label htmlFor="password" className="text-sm font-medium text-gray-900 block mb-2">Your password</label>
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+              Your Password
+            </label>
             <input
               type="password"
               id="password"
-              className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+              className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
               placeholder="••••••••"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
           </div>
-          <div className="flex items-start">
-           
-            <a href="#" className="text-sm text-black ml-auto dark:text-black">Lost Password?</a>
+
+          {/* Forgot Password Link */}
+          <div className="flex justify-end">
+            <Link
+              to="/forgot-password"
+              className="text-sm text-blue-600 hover:text-blue-800 transition-colors"
+            >
+              Forgot Password?
+            </Link>
           </div>
-          <button type="submit" className="w-1/4 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Login</button>
-          <div className="text-sm font-medium text-gray-500 dark:text-gray-300">
-            Not registered? <a href="#" className="text-black  dark:text-black"><Link to={'/register'}>Create account</Link></a>
+
+          {/* Login Button */}
+          <button
+            type="submit"
+            className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          >
+            Login
+          </button>
+
+          {/* Register Link */}
+          <div className="text-center text-sm text-gray-600">
+            Not registered?{' '}
+            <Link
+              to="/register"
+              className="text-blue-600 hover:text-blue-800 font-semibold transition-colors"
+            >
+              Create account
+            </Link>
           </div>
         </form>
-     
       </div>
-
     </div>
   );
 };

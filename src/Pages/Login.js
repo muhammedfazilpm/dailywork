@@ -8,7 +8,7 @@ const Login = () => {
 
   },[])
   return (
-    <div className='w-3/4 flex justify-center'>
+    <div className='w-full flex justify-center'>
   <DocumentCardComponent/>
       
     </div>

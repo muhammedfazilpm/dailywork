@@ -13,13 +13,13 @@ const Publicroutes = (props) => {
       try {
         const res = await axios.post(workerauth, {}, { headers });
         if (!res.data.success) {
-         navigate('/login')
+        //  navigate('/')
         } else {
           navigate('/home');
         }
       } catch (error) {
         console.error('Error:', error);
-        navigate('/login');
+        navigate('/');
       }
     };
 

@@ -11,6 +11,7 @@ import Otp from './Pages/Otp';
 import Profile from './Pages/Profile';
 import Addprofiles from './Pages/Addprofiles';
 import Mobileotp from './Pages/Mobileotp';
+import Landingpage from './Pages/Landingpage';
 function App() {
   return (
   <div className='App'>
@@ -18,7 +19,9 @@ function App() {
 
    <BrowserRouter>
    <Routes>
-   <Route path='/login' element={<Publicroutes><Login/></Publicroutes>}/>
+   <Route path='/login' element={<Login/>}/>
+   <Route path='/' element={<Landingpage/>}/>
+
    <Route path='/register' element={<Register/>}/>
    <Route path='/home' element={<Protectedroutes><Home/></Protectedroutes>}/>
    <Route path='/otp' element={<Otp/>}/>

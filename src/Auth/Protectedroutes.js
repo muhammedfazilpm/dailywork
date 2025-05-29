@@ -15,11 +15,11 @@ const Protectedroutes = (props) => {
         if (res.data.success) {
           setAuthenticated(true);
         } else {
-          navigate('/login');
+          navigate('/');
         }
       } catch (error) {
         console.error('Error:', error);
-        navigate('/login');
+        navigate('/');
       }
     };
 

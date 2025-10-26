@@ -20,7 +20,18 @@
 .App-link {
   color: #61dafb;
 }
-
+.bg-provider{
+  background-image: url('../public/banner/20250719_1006_Family\ Seeking\ Help_simple_compose_01k0gfdkkwfs58djpdrehyreps.png');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+}
+.bg-worker{
+  background-image: url('../public/banner/20250719_1657_Kerala\ Worker\ Celebration_simple_compose_01k0h6we39e0393qz1mkxq32xr.png');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+}
 @keyframes App-logo-spin {
   from {
     transform: rotate(0deg);

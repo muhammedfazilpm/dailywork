@@ -41,7 +41,7 @@ const ProtectedRoutes = (props) => {
   }, [navigate]);
 
   if (loading) {
-    return <div style={{width:"100vw",height:"100vh"}}>Loading...</div>; // Or your custom loading component
+    return <div >Loading...</div>; 
   }
 
   return authenticated ? props.children : null;

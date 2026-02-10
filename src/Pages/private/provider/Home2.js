@@ -472,7 +472,7 @@ useEffect(() => {
 
     {/* WhatsApp Button */}
     <a
-      href={`https://wa.me/91${worker.userId.contactNo}`}
+      href={`https://wa.me/${worker.userId.contactNo}`}
       target="_blank"
       rel="noopener noreferrer"
       className="flex items-center justify-center gap-2 w-1/2 px-4 py-2.5 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition"

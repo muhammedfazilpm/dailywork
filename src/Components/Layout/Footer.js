@@ -1,85 +1,76 @@
-import React from 'react';
-import { FaFacebook, FaTwitter, FaInstagram, FaLinkedin, FaMapMarkerAlt, FaPhone, FaEnvelope } from 'react-icons/fa';
+import React from "react";
+import {
+  FaFacebook,
+  FaInstagram,
+  FaLinkedin,
+  FaYoutube,
+  FaMapMarkerAlt,
+  FaPhone,
+  FaEnvelope,
+} from "react-icons/fa";
 
 function Footer() {
   return (
-    <footer className="bg-red-700 text-white">
-      <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          
-          {/* Company Info */}
-          <div className="mb-6">
-            <h3 className="text-xl font-bold mb-4 border-b border-red-600 pb-2">Kooliapp</h3>
-            <p className="mb-4">
-              Connecting skilled professionals with local job opportunities in wiring, plumbing, and more.
+    <footer className="bg-[black] text-gray-300">
+      <div className="max-w-6xl mx-auto px-4 py-10">
+
+        <div className="flex flex-col md:flex-row justify-between gap-8">
+
+          {/* Brand */}
+          <div>
+            <h3 className="text-2xl font-bold text-white mb-3">Kooliapp</h3>
+            <p className="text-sm leading-relaxed max-w-sm">
+              Connecting skilled professionals with local job opportunities
+              in plumbing, electrical work, and more.
             </p>
-            <div style={{textAlign:"left"}} className="flex text-left align-middle justify-center space-x-4">
-              <a href="#" className="text-white hover:text-red-300">
-                <FaFacebook size={20} />
+
+<p className="text-sm leading-relaxed mt-2 max-w-sm">
+  പ്ലംബിംഗ്, ഇലക്ട്രിക്കൽ വർക്ക്, മറ്റ് അനുബന്ധ മേഖലകൾ എന്നിവയിലെ പ്രാദേശിക തൊഴിലവസരങ്ങളുമായി വൈദഗ്ധ്യമുള്ളവരെ ബന്ധിപ്പിക്കുന്നു.
+</p>
+            {/* Social Icons */}
+            <div className="flex items-center justify-center space-x-4 mt-4">
+              <a href="https://www.facebook.com/profile.php?id=61577365524534&sk=directory_contact_info" className="hover:text-white transition">
+                <FaFacebook size={18} />
               </a>
-              <a href="#" className="text-white hover:text-red-300">
-                <FaTwitter size={20} />
+              <a href="https://www.instagram.com/kooli_app?igsh=MWVmdnlsZzJpNnJvYg%3D%3D&utm_source=qr" className="hover:text-white transition">
+                <FaInstagram size={18} />
               </a>
-              <a href="#" className="text-white hover:text-red-300">
-                <FaInstagram size={20} />
+              <a href="https://www.linkedin.com/in/kooliapp-india-2666b53ab/" className="hover:text-white transition">
+                <FaLinkedin size={18} />
               </a>
-              <a href="#" className="text-white hover:text-red-300">
-                <FaLinkedin size={20} />
+              <a href="https://www.youtube.com/@techupdate8726" className="hover:text-white transition">
+                <FaYoutube size={18} />
               </a>
             </div>
           </div>
-          
-          {/* Quick Links */}
-          <div className="mb-6">
-            <h3 className="text-xl font-bold mb-4 border-b border-red-600 pb-2">Quick Links</h3>
-            <ul style={{textAlign:"left"}} className="space-y-2">
-              <li><a href="#" className="hover:text-red-300">Home</a></li>
-              <li><a href="#" className="hover:text-red-300">About Us</a></li>
-              <li><a href="#" className="hover:text-red-300">Services</a></li>
-              <li><a href="#" className="hover:text-red-300">How It Works</a></li>
-              <li><a href="#" className="hover:text-red-300">Contact</a></li>
-            </ul>
-          </div>
-          
-          {/* Services */}
-          <div className="mb-6">
-            <h3 className="text-xl font-bold mb-4 border-b border-red-600 pb-2">Our Services</h3>
-            <ul style={{textAlign:"left"}} className="space-y-2">
-              <li><a href="#" className="hover:text-red-300">Plumbing</a></li>
-              <li><a href="#" className="hover:text-red-300">Electrical Work</a></li>
-              <li><a href="#" className="hover:text-red-300">Carpentry</a></li>
-              <li><a href="#" className="hover:text-red-300">Painting</a></li>
-              <li><a href="#" className="hover:text-red-300">Cleaning Services</a></li>
-            </ul>
-          </div>
-          
-          {/* Contact Info */}
-          <div className="mb-6">
-            <h3 className="text-xl font-bold mb-4 border-b border-red-600 pb-2">Contact Us</h3>
-            <div className="space-y-3">
-              <div className="flex items-start">
-                <FaMapMarkerAlt className="mt-1 mr-3 flex-shrink-0" />
-                <span>123 Work Street, Job City, 12345</span>
+
+          {/* Contact */}
+          <div>
+            <h4 className="text-lg font-semibold text-white mb-3">
+              Contact Us
+            </h4>
+
+            <div className="space-y-3 text-sm">
+              <div className="flex items-center gap-3">
+                <FaMapMarkerAlt />
+                <span>Kuruvattur, Calicut</span>
               </div>
-              <div className="flex items-center">
-                <FaPhone className="mr-3" />
-                <span>+1 (123) 456-7890</span>
+              <div className="flex items-center gap-3">
+                <FaPhone />
+                <span>+91 85902 26483</span>
               </div>
-              <div className="flex items-center">
-                <FaEnvelope className="mr-3" />
-                <span>contact@dailyworks.com</span>
+              <div className="flex items-center gap-3">
+                <FaEnvelope />
+                <span>info.kooliapp@gmail.com</span>
               </div>
             </div>
           </div>
+
         </div>
-      </div>
-      
-      {/* Copyright */}
-      <div className="bg-black py-4">
-        <div className="container mx-auto px-4 text-center">
-          <p className="text-white text-sm">
-            &copy; {new Date().getFullYear()} Kooliapp. All rights reserved.
-          </p>
+
+        {/* Divider */}
+        <div className="border-t border-gray-700 mt-8 pt-6 text-center text-sm">
+          © {new Date().getFullYear()} Kooliapp. All rights reserved.
         </div>
       </div>
     </footer>

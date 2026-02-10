@@ -3,11 +3,12 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { IoPlayBackCircleOutline } from 'react-icons/io5';
-import {worker_register} from '../../Services.js/WorkerApi'
+import {workerRegister} from '../../Services.js/WorkerApi'
+import { FaArrowLeft } from 'react-icons/fa';
 
 const Workprovideregister = () => {
   const navigate = useNavigate();
-  const [email, setEmail] = useState('');
+  const [whatsapp, setwhatsapp] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -18,21 +19,38 @@ const handleSubmit = async (e) => {
   setIsLoading(true);
 
   try {
-    const formData = { email, password, name };
+
+  let phone = whatsapp.toString().trim();
+      
+      if (phone.startsWith("+")) {
+        phone = phone.slice(1);
+      }
+      
+      if (!phone.startsWith("91")) {
+        phone = "91" + phone;
+      }
+      
+      if (!/^\d{12}$/.test(phone)) {
+        toast.error("watsapp Number Should Be 10 Digit")
+        return 
+      }
+
+    const formData = { contactNo:phone, password, name,role:"provider" };
     console.log("Form Data:", formData);
 
     // If your backend expects just formData directly:
-    const response = await axios.post(worker_register, {formdata:formData});
+    const response = await axios.post(workerRegister, {formdata:formData});
 
     console.log("Server Response:", response);
 
-    if (response.data.success === false) {
-      toast.error(response.data.message);
-    } else {
-      toast.success('Registration successful!');
-      localStorage.setItem('todayemail', response.data.email);
-      navigate('/otp',{ state: {type:"provider"} });
-    }
+     
+      if (response?.data?.data?.data?.response === false) {
+        toast.error(response.data.message);
+      } else {
+        toast.success('Registration successful!');
+        localStorage.setItem('todaywhatsapp', phone);
+        navigate('/otp',{ state: {type:"provider"} });
+      }
   } catch (error) {
     console.error('Registration error:', error);
     toast.error(error.response?.data?.message || 'An error occurred. Please try again.');
@@ -47,8 +65,9 @@ const handleSubmit = async (e) => {
       <div className="bg-white w-full max-w-md shadow-xl rounded-xl overflow-hidden">
         {/* Header with red accent */}
         <div className="bg-black py-4 px-6">
-          <IoPlayBackCircleOutline onClick={()=>navigate('/')} style={{cursor:"pointer"}} color='white' size={35}/>
+                      <FaArrowLeft onClick={()=>navigate('/')} style={{cursor:"pointer"}} color='white' size={24} />
           
+\          
           <div className='w-full flex items-center justify-center'>
             <img style={{height:"70px",width:"70px"}} src='/kooliapplogo.png' alt='Logo' />
           </div>
@@ -80,10 +99,10 @@ const handleSubmit = async (e) => {
               </div>
             </div>
 
-            {/* Email Input */}
+            {/* whatsapp Input */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                {/* Email Address */}
+              <label htmlFor="whatsapp" className="block text-sm font-medium text-gray-700 mb-1">
+                {/* whatsapp Address */}
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -93,13 +112,13 @@ const handleSubmit = async (e) => {
                   </svg>
                 </div>
                 <input
-                  type="email"
-                  id="email"
+                  type="whatsapp"
+                  id="whatsapp"
                   className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all"
-                  placeholder="Email"
+                  placeholder="whatsapp"
                   required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  value={whatsapp}
+                  onChange={(e) => setwhatsapp(e.target.value)}
                 />
               </div>
             </div>

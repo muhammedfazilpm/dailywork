@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from "react";
 import Navbar from "../Components/Layout/Navbar";
 import Footer from "../Components/Layout/Footer";
-import PostedWorks from "./Component/Postedwork";
+import {jwtDecode} from "jwt-decode";
 import {
-  workerprofileget,
-  workerAddress,
   Allwork,
   userWork,
   deleteWork,
@@ -13,6 +11,8 @@ import {
   verifyAadhar,
   verifyAddress,
   verifyPayment,
+  workerWorkGet,
+  locationAll
 } from "../Services.js/WorkerApi";
 import axios from "axios";
 import Select from "react-select";
@@ -31,6 +31,7 @@ function loadScript(src) {
 function Home() {
   const token = localStorage.getItem("token");
 
+
   const [profile, setProfile] = useState("");
   const [works, setWorks] = useState([]);
   const [allWork, setAllWork] = useState([]);
@@ -40,46 +41,59 @@ function Home() {
 
   const [showWorkModal, setShowWorkModal] = useState(false);
   const [showAadharModal, setShowAadharModal] = useState(false);
-
   const [selectedWork, setSelectedWork] = useState(null);
+  const [selectedLocation, setSelectedLocation] = useState(null);
+
   const [amount, setAmount] = useState("");
   const [editWorkId, setEditWorkId] = useState(null);
+  const [workItems, setWorkItems] = useState([]);
+  const[allLocation,setAllLocation]=useState([])
+  const [paymentType, setPaymentType] = useState(null);
+
+
 
   const [editAddress, setEditAddress] = useState(false);
   const [tempAddress, setTempAddress] = useState("");
 
 const [editLocation, setEditLocation] = useState(false);
   const [tempLocation, setTempLocation] = useState("");
+
+useEffect(() => {
+  if (token) {
+    const decoded = jwtDecode(token);
+    setProfile(decoded);
+  }
+}, [token]);
+
   const saveLocation = () => {
     if (!tempLocation) {
       toast.error("Please select a location");
       return;
     }
-    setProfile({ ...profile, location: tempLocation });
+    // setProfile({ ...profile, location: tempLocation });
     setEditLocation(false);
     toast.success("Location updated successfully!");
   };
-  const [workItems, setWorkItems] = useState([
-    {
-      id: 1,
-      location: "Downtown Office",
-      description: "Electrical wiring installation for new office space",
-      status: "pending"
-    },
-    {
-      id: 2,
-      location: "Westside Mall",
-      description: "Plumbing repairs in food court area",
-      status: "pending"
-    },
-    {
-      id: 3,
-      location: "North Park Apartments",
-      description: "HVAC system maintenance for building common areas",
-      status: "pending"
-    },
-   
-  ]);
+
+
+  const paymentOptions = [
+  { value: "hour", label: "Per Hour (മണിക്കൂറിൽ) " },
+  { value: "day", label: "Per Day (ദിവസത്തിൽ)" },
+  { value: "month", label: "Per Month (മാസത്തിൽ) " },
+];
+  const getAllLocation=async()=>{
+    try {
+       const res = await axios.get(locationAll, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      console.log(res?.data?.data,"all location")
+setAllLocation(res?.data?.data)      
+    } catch (error) {
+      console.log(error)
+      
+    }
+  }
 
 
   const handleGetNumber = (id) => {
@@ -90,40 +104,69 @@ const [editLocation, setEditLocation] = useState(false);
     );
   };
 
-  /** ---------------- PROFILE ---------------- **/
-  const getProfiles = async () => {
+  const getWork=async()=>{
     try {
-      const res = await axios.get(workerprofileget, {
+      const res = await axios.get(workerWorkGet, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setProfile(res.data.profile);
-      setWorks(res.data.userwork);
-      if (res.data.profile.aadhar) {
-        setAadhar({
-          number: res.data.profile.aadhar.number,
-          verified: res.data.profile.aadhar.verified,
-        });
-      }
-    } catch (err) {
-      toast.error("Failed to load profile");
+      console.log(res?.data?.data,"works")
+      setWorks(res?.data?.data)
+    } catch (error) {
+      console.log(error)
     }
-  };
+  }
 
-  const saveAddress = async () => {
-    if (!tempAddress) return toast.error("Please enter address");
-    try {
-      await axios.post(
-        workerAddress,
-        { address: tempAddress },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      toast.success("Address saved successfully");
-      getProfiles();
-      setEditAddress(false);
-    } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to save address");
-    }
-  };
+  useEffect(()=>{
+getWork()
+getWorks()
+getAllLocation()
+  },[])
+
+  /** ---------------- PROFILE ---------------- **/
+  // const getProfiles = async () => {
+  //   try {
+  //     const res = await axios.get(workerprofileget, {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     });
+  //     setProfile(res.data.profile);
+  //     setWorks(res.data.userwork);
+  //     if (res.data.profile.aadhar) {
+  //       setAadhar({
+  //         number: res.data.profile.aadhar.number,
+  //         verified: res.data.profile.aadhar.verified,
+  //       });
+  //     }
+  //   } catch (err) {
+  //     toast.error("Failed to load profile");
+  //   }
+  // };
+
+  // const saveAddress = async () => {
+  //   if (!tempAddress) return toast.error("Please enter address");
+  //   try {
+  //     await axios.post(
+  //       workerAddress,
+  //       { address: tempAddress },
+  //       { headers: { Authorization: `Bearer ${token}` } }
+  //     );
+  //     toast.success("Address saved successfully");
+  //     // getProfiles();
+  //     setEditAddress(false);
+  //   } catch (err) {
+  //     toast.error(err.response?.data?.message || "Failed to save address");
+  //   }
+  // };
+
+
+  const locationOptions = allLocation.map((loc) => ({
+  value: loc._id,
+  label: `${loc.place}, ${loc.town}, ${loc.district}, ${loc.state}`,
+  state: loc.state,
+  district: loc.district,
+  town: loc.town,
+  place: loc.place,
+}));
+
 
   /** ---------------- WORKS ---------------- **/
   const getWorks = async () => {
@@ -131,7 +174,8 @@ const [editLocation, setEditLocation] = useState(false);
       const res = await axios.get(Allwork, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setAllWork(res.data);
+      console.log(res?.data?.data,"all work")
+      setAllWork(res?.data?.data);
     } catch (err) {
       toast.error("Failed to load works");
     }
@@ -143,15 +187,17 @@ const [editLocation, setEditLocation] = useState(false);
       await axios.post(
         userWork,
         {
-          amount,
-          paytype: selectedWork?.paytype,
-          workName: selectedWork?.value,
+          amountForWork:amount,
+          workId:selectedWork?.value,
+          locationId:selectedLocation?.value,
+          amountType:paymentType?.value
+         
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       toast.success("Work added successfully");
       resetWorkModal();
-      getProfiles();
+      getWork()
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to add work");
     }
@@ -171,23 +217,48 @@ const [editLocation, setEditLocation] = useState(false);
       );
       toast.success("Work updated successfully");
       resetWorkModal();
-      getProfiles();
+      // getProfiles();
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to update work");
     }
   };
 
-  const handleDeleteWork = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this work?")) return;
-    try {
-      await axios.delete(`${deleteWork}/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      toast.success("Work deleted");
-      getProfiles();
-    } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to delete work");
-    }
+ const handleDeleteWork = (id) => {
+    toast((t) => (
+      <span>
+        Are you sure you want to delete this work?
+        <div className="mt-3 flex gap-2">
+          <button
+            className="bg-red-600 text-white px-3 py-1 rounded"
+            onClick={async () => {
+              try {
+              await axios.delete(deleteWork, {
+  data: { id },   
+  headers: {
+    Authorization: `Bearer ${token}`,
+  },
+});
+
+                toast.dismiss(t.id);
+                toast.success("Work deleted");
+                getWork();
+              } catch {
+                toast.dismiss(t.id);
+                toast.error("Delete failed");
+              }
+            }}
+          >
+            Yes
+          </button>
+          <button
+            className="bg-gray-200 px-3 py-1 rounded"
+            onClick={() => toast.dismiss(t.id)}
+          >
+            Cancel
+          </button>
+        </div>
+      </span>
+    ));
   };
 
   const handleEditWork = (work) => {
@@ -221,7 +292,7 @@ const [editLocation, setEditLocation] = useState(false);
       toast.success("Aadhaar added successfully");
       setShowAadharModal(false);
       setAadharNumber("");
-      getProfiles();
+      // getProfiles();
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to add Aadhaar");
     }
@@ -235,7 +306,7 @@ const [editLocation, setEditLocation] = useState(false);
         { headers: { Authorization: `Bearer ${token}` } }
       );
       toast.success("Aadhaar verification submitted");
-      getProfiles();
+      // getProfiles();
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to verify Aadhaar");
     }
@@ -284,10 +355,10 @@ const [editLocation, setEditLocation] = useState(false);
   };
 
   /** ---------------- INIT ---------------- **/
-  useEffect(() => {
-    getProfiles();
-    getWorks();
-  }, []);
+  // useEffect(() => {
+  //   getProfiles();
+  //   getWorks();
+  // }, []);
 
   return (
     <div className="w-full bg-gray-100 min-h-screen">
@@ -299,144 +370,70 @@ const [editLocation, setEditLocation] = useState(false);
         </h1>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-         <div className="bg-white rounded-lg shadow-md p-6 border border-red-200">
-      <h2 className="text-xl font-semibold text-red-700 mb-4 pb-2 border-b border-red-100">
-        Profile Details
-      </h2>
-
-      <div className="space-y-4">
-        {/* Name */}
-        <div>
-          <p className="text-sm text-gray-500">Name</p>
-          <p className="font-medium">{profile.name}</p>
-        </div>
-
-        {/* Email */}
-        <div>
-          <p className="text-sm text-gray-500">Email</p>
-          <p className="font-medium">{profile.email}</p>
-        </div>
-
-        {/* Phone */}
-        <div>
-          <p className="text-sm text-gray-500">Phone</p>
-          <p className="font-medium">{profile.phone}</p>
-        </div>
-
-        {/* Location */}
-        <div>
-          <p className="text-sm text-gray-500">Location</p>
-          {editLocation ? (
-            <div className="mt-2">
-              <select
-                value={tempLocation}
-                onChange={(e) => setTempLocation(e.target.value)}
-                className="w-full p-2 border border-red-300 rounded"
-              >
-                <option value="">Select a location</option>
-                <option value="Kozhikode">Kozhikode</option>
-                <option value="Malappuram">Malappuram</option>
-                <option value="Kannur">Kannur</option>
-                <option value="Wayanad">Wayanad</option>
-                <option value="Thrissur">Thrissur</option>
-              </select>
-
-              <div className="flex space-x-2 mt-2">
-                <button
-                  onClick={saveLocation}
-                  className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700"
-                >
-                  Save
-                </button>
-                <button
-                  onClick={() => setEditLocation(false)}
-                  className="border border-red-600 text-red-600 px-3 py-1 rounded text-sm hover:bg-red-50"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          ) : profile.location ? (
-            <div className="flex justify-between items-center">
-              <p className="font-medium">{profile.location}</p>
-              <button
-                onClick={() => {
-                  setTempLocation(profile.location);
-                  setEditLocation(true);
-                }}
-                className="text-red-600 hover:text-red-800 text-sm"
-              >
-                Edit
-              </button>
-            </div>
-          ) : (
-            <button
-              onClick={() => setEditLocation(true)}
-              className="mt-1 text-red-600 text-sm underline hover:text-red-800"
-            >
-              + Add Location
-            </button>
-          )}
-        </div>
-
-        {/* Address */}
-        <div>
-          <p className="text-sm text-gray-500">Address</p>
-          {editAddress ? (
-            <div className="mt-2">
-              <textarea
-                value={tempAddress}
-                onChange={(e) => setTempAddress(e.target.value)}
-                className="w-full p-2 border border-red-300 rounded"
-              />
-              <div className="flex space-x-2 mt-2">
-                <button
-                  onClick={saveAddress}
-                  className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700"
-                >
-                  Save
-                </button>
-                <button
-                  onClick={() => setEditAddress(false)}
-                  className="border border-red-600 text-red-600 px-3 py-1 rounded text-sm hover:bg-red-50"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="flex justify-between items-start">
-              <p className="font-medium overflow-x-scroll overflow-y-hidden">
-                {profile.Address || "No address added"}
-              </p>
-              <button
-                onClick={() => {
-                  setTempAddress(profile.Address || "");
-                  setEditAddress(true);
-                }}
-                className="text-red-600 hover:text-red-800 text-sm"
-              >
-                Edit
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Verify Address Button */}
-      <div className="mt-6">
-        <button
-          onClick={() =>
-            !profile.Address
-              ? toast.error("Please add address first")
-              : handlePay()
-          }
-          className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
-        >
-          Verify Address
-        </button>
-      </div>
+      <div className="bg-white rounded-xl shadow-sm p-6 border border-red-100">
+  <div className="flex items-center gap-4 mb-6">
+    {/* Avatar */}
+    <div className="w-14 h-14 rounded-full p-[40px] text-[30px] bg-red-600 flex items-center justify-center text-white text-xl font-semibold">
+      {profile?.name ? profile.name.charAt(0).toUpperCase() : "U"}
     </div>
+
+    {/* Name & Role */}
+    <div>
+      <h2 className="text-lg font-semibold text-gray-800">
+        {profile?.name || "User Name"}
+      </h2>
+      <p className="text-sm text-gray-500">Worker Profile</p>
+    </div>
+  </div>
+
+  <div className="space-y-4">
+    {/* Phone */}
+    <div className="flex items-center justify-between bg-gray-50 rounded-lg p-3">
+      <div>
+        <p className="text-xs text-gray-500">Phone Number</p>
+        <p className="font-medium text-gray-800">
+          {profile?.contactNo || "Not provided"}
+        </p>
+      </div>
+      <span className="text-green-600 text-xs font-medium">Verified</span>
+    </div>
+
+    {/* Location (optional) */}
+    {profile?.location && (
+      <div className="flex items-center justify-between bg-gray-50 rounded-lg p-3">
+        <div>
+          <p className="text-xs text-gray-500">Location</p>
+          <p className="font-medium text-gray-800">{profile.location}</p>
+        </div>
+      </div>
+    )}
+
+    {/* Address (optional) */}
+    {profile?.Address && (
+      <div className="bg-gray-50 rounded-lg p-3">
+        <p className="text-xs text-gray-500 mb-1">Address</p>
+        <p className="font-medium text-gray-800 leading-relaxed">
+          {profile.Address}
+        </p>
+      </div>
+    )}
+  </div>
+
+  {/* Action Buttons */}
+  {/* <div className="mt-6 flex gap-3">
+    <button
+      className="flex-1 bg-red-600 text-white py-2 rounded-lg text-sm font-medium hover:bg-red-700 transition"
+    >
+      Edit Profile
+    </button>
+    <button
+      className="flex-1 border border-red-600 text-red-600 py-2 rounded-lg text-sm font-medium hover:bg-red-50 transition"
+    >
+      Verify Details
+    </button>
+  </div> */}
+</div>
+
 
           {/* Work Details */}
           <div className="bg-white rounded-lg shadow-md p-6 border border-red-200">
@@ -461,13 +458,16 @@ const [editLocation, setEditLocation] = useState(false);
                   <thead>
                     <tr className="bg-red-50">
                       <th className="py-2 px-4 text-left text-sm text-red-700">
-                        Work Name
+                        Work
                       </th>
                       <th className="py-2 px-4 text-left text-sm text-red-700">
                         Period
                       </th>
                       <th className="py-2 px-4 text-left text-sm text-red-700">
                         Amount
+                      </th>
+                       <th className="py-2 px-4 text-left text-sm text-red-700">
+                        Location
                       </th>
                       <th className="py-2 px-4 text-center text-sm text-red-700">
                         Action
@@ -477,16 +477,18 @@ const [editLocation, setEditLocation] = useState(false);
                   <tbody>
                     {works.map((w) => (
                       <tr key={w._id} className="border-b border-red-100">
-                        <td className="py-3 px-4">{w.userWorkname}</td>
-                        <td className="py-3 px-4">{w.paytype}</td>
-                        <td className="py-3 px-4">₹{w.amount}</td>
+                        <td className="py-3 px-4">{w?.workId?.name}</td>
+                        <td className="py-3 px-4">{w.amountType}</td>
+                        <td className="py-3 px-4">₹{w.amountForWork}</td>
+                        <td className="py-3 px-4">₹{w?.locationId?.place}</td>
+
                         <td className="py-3 px-4 flex gap-2">
-                          <button
+                          {/* <button
                             onClick={() => handleEditWork(w)}
                             className="bg-blue-500 text-white px-2 py-1 rounded text-sm hover:bg-blue-600"
                           >
                             Edit
-                          </button>
+                          </button> */}
                           <button
                             onClick={() => handleDeleteWork(w._id)}
                             className="bg-red-500 text-white px-2 py-1 rounded text-sm hover:bg-red-600"
@@ -512,7 +514,7 @@ const [editLocation, setEditLocation] = useState(false);
         Work List
       </h2>
       
-      <div className="space-y-4">
+      {/* <div className="space-y-4">
         {workItems.map(item => (
           <div 
             key={item.id}
@@ -548,7 +550,10 @@ const [editLocation, setEditLocation] = useState(false);
             )}
           </div>
         ))}
-      </div>
+      </div> */}
+<p>നിങ്ങളുടെ സ്ഥലത്തുള്ള ജോലികൾ ഇവിടെ കാണാം.</p>     
+ <p>Here we will list the Work that have in your location</p>
+      <h1 className="font-bold mt-4">Comming Soon..</h1>
     </div>
           
         </div>
@@ -564,14 +569,23 @@ const [editLocation, setEditLocation] = useState(false);
             <div className="space-y-4">
               <Select
                 options={allWork.map((i) => ({
-                  value: i.Workname,
-                  label: i.Workname,
+                  value: i._id,
+                  label: i.name,
                   paytype: i.paytype,
                 }))}
                 value={selectedWork}
                 onChange={setSelectedWork}
                 placeholder="Select Work"
               />
+
+               <Select
+  options={locationOptions}
+  value={selectedLocation}
+  onChange={setSelectedLocation}
+  placeholder="Search place "
+  isSearchable
+/>
+
               <input
                 type="number"
                 value={amount}
@@ -579,6 +593,16 @@ const [editLocation, setEditLocation] = useState(false);
                 className="w-full p-2 border border-red-300 rounded"
                 placeholder="Enter amount"
               />
+
+              <Select
+  options={paymentOptions}
+  value={paymentType}
+  onChange={setPaymentType}
+  placeholder="Select Payment Type"
+  isSearchable={false}
+/>
+
+
             </div>
             <div className="flex justify-end gap-3 mt-6">
               <button

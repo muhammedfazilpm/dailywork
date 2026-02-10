@@ -7,6 +7,7 @@ function Navbar() {
 
   const logout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem('providertoken')
     window.location.reload();
   };
 
@@ -46,9 +47,9 @@ function Navbar() {
             </li> */}
             <li>
               <a 
-                href="#" 
+                
                 onClick={logout} 
-                className="block py-2 px-3 text-white rounded hover:bg-red-800 md:hover:bg-transparent md:border-0 md:hover:text-red-300 md:p-0 cursor-pointer"
+                className="block font-bold py-2 px-3 text-black p-2 rounded hover:bg-red-800 md:hover:bg-transparent md:border-0 md:hover:text-red-300 md:p-0 cursor-pointer"
               >
                 Logout
               </a>

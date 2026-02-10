@@ -23,12 +23,7 @@ import Home2 from './Pages/private/provider/Home2';
 import TermsAndConditions from './Pages/public/TermsAndConditions';
 import RefundPolicy from './Pages/public/RefundPolicy';
 function App() {
-   const { t, i18n } = useTranslation();
-   // In your index.js or App.js
-
-  const changeLanguage = (lng) => {
-    i18n.changeLanguage(lng);
-  };
+  
   return (
   <div className='App'>
     {/* <div>

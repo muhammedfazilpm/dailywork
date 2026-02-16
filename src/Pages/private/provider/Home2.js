@@ -117,7 +117,7 @@ const createPayment = async () => {
 
       // Load SDK
       cashfree = await load({
-        mode: "sandbox", // change to "production" in live
+        mode: "production", // change to "production" in live
       });
 
       // Open Checkout

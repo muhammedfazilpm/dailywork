@@ -1,7 +1,7 @@
 
-let workapi="http://localhost:3000"
+// let workapi="http://localhost:3000"
 
-// let workapi="https://backend.kooliapp.in"
+let workapi="https://backend.kooliapp.in"
 
 let workerRegister=workapi+'/server/user/register/'
 

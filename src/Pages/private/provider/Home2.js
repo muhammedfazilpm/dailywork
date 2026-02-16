@@ -7,7 +7,7 @@ import axios from "axios";
 import Select from "react-select";
 import Swal from "sweetalert2";
 import { PaymentGateway } from "../../../Services/Paymentgateway";
-
+import { load } from "@cashfreepayments/cashfree-js";
 import { FaSearch, FaPlus, FaMapMarkerAlt, FaUser, FaRupeeSign, FaBriefcase } from "react-icons/fa";
 import { Allwork, locationAll ,workersListBylocation,purchase, verifyPayment} from "../../../Services.js/WorkerApi";
 import toast from "react-hot-toast";
@@ -17,13 +17,14 @@ import toast from "react-hot-toast";
 
 
 function Home2() {
+  let cashfree;
   const token = localStorage.getItem("providertoken");
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [showWorkerModal, setShowWorkerModal] = useState(false);
   const [showPostJobModal, setShowPostJobModal] = useState(false);
 
   const [orderGenerated, setOrderGenerated] = useState({})
- const  [razorpayResponse, setRazorpayResponse] = useState(null)
+  const [paymentSessionId, setPaymentSessionId] = useState(null)
 
 
   const [search, setSearch] = useState("");
@@ -51,7 +52,6 @@ function Home2() {
     const res = await axios.get(`${workersListBylocation}?locationId=${selectedLocation?.value}&&workId=${selectedWork?.value}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
- console.log(res?.data?.data,"selectedLoc")
       setWorkersMock(res?.data?.data)
     setShowLocationModal(false);
     setShowWorkerModal(true);
@@ -62,26 +62,7 @@ function Home2() {
 
   };
 
-  let verifyPayments=async()=>{
-    try {
-        const res = await axios.post(verifyPayment,
-            {razorpayResponse},
-            {
-        headers: { Authorization: `Bearer ${token}` },
-      });
 
-     handleGetWorkers()
-
-    } catch (error) {
-        
-    }
-  }
-
-useEffect(()=>{
-if(razorpayResponse){
-    verifyPayments()
-}
-},[razorpayResponse])
 
 const getAllLocation=async()=>{
     try {
@@ -89,7 +70,6 @@ const getAllLocation=async()=>{
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      console.log(res?.data?.data,"all location")
        setLocations(res?.data?.data)      
     } catch (error) {
       console.log(error)
@@ -104,7 +84,6 @@ const getAllLocation=async()=>{
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      console.log(res?.data?.data,"all location")
    setWorks(res?.data?.data)      
     } catch (error) {
       console.log(error)
@@ -112,33 +91,47 @@ const getAllLocation=async()=>{
     }
   }
 
-  const createPayment=async()=>{
-    try {
-       const res = await axios.post(
-  purchase,
-  { amount: 10 },
-  {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  }
-);
+const createPayment = async () => {
+  try {
+    const res = await axios.post(
+      purchase,
+      { amount: 10 },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
 
- if (res?.status === 200) {
-        setOrderGenerated(res?.data)
-        // setSubscriptionModal(false)
-        // setIsLoading({ loading: true, id: '' })
-        
+
+    if (res?.status === 200) {
+
+      const paymentSessionId =
+        res?.data?.data?.payment_session_id;
+
+
+      if (!paymentSessionId) {
+        toast.error("Payment session not received");
+        return;
       }
 
-console.log(res,"Responsessss......")
-        
-    } catch (error) {
+      // Load SDK
+      cashfree = await load({
+        mode: "sandbox", // change to "production" in live
+      });
 
-        toast.error("try agai after some time")
-        
+      // Open Checkout
+      cashfree.checkout({
+        paymentSessionId: paymentSessionId, // ✅ correct key
+        redirectTarget: "_self", 
+      });
     }
+  } catch (error) {
+    console.error(error);
+    toast.error("Try again after some time");
   }
+};
+
 
 
 
@@ -165,7 +158,6 @@ console.log(res,"Responsessss......")
 useEffect(() => {
   if (token) {
     const decoded = jwtDecode(token);
-    console.log(decoded,"decade")
     setProfile(decoded);
   }
 }, [token]);
@@ -662,10 +654,13 @@ useEffect(() => {
 )}
 
 
- {
-        orderGenerated?.id &&
-        <PaymentGateway orderGenerated={orderGenerated} setRazorpayResponse={setRazorpayResponse} />
-      }
+{
+  paymentSessionId &&
+  <PaymentGateway 
+     paymentSessionId={paymentSessionId}
+  />
+}
+
 
       <Footer />
     </div>

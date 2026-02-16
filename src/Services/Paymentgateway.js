@@ -1,39 +1,32 @@
-import React, { useEffect } from 'react'
-import { useRazorpay } from "react-razorpay";
+import { useEffect } from "react";
+import { load } from "@cashfreepayments/cashfree-js";
 
-export const PaymentGateway = ({ orderGenerated, setRazorpayResponse }) => {    
-    const { error, isLoading, Razorpay } = useRazorpay();
-    const openPayment = async () => {
-        const options = {
-            key: process.env.REACT_APP_RAZORPAY_KEY_ID,
-            amount: orderGenerated?.amount,
-            currency: orderGenerated?.currency,
-            name: "Kooliapp",
-            description: `Payment for get Contact '`,
-            order_id: orderGenerated?.id, 
-            handler: async (response) => {
-                setRazorpayResponse(response)
-            },
-    
-        }
-        console.log(options,"options")
-        if (Razorpay) {
-            try {
-                const razorpayInstance = new Razorpay(options);
-                razorpayInstance.open();
-            } catch (error) {
-                console.error("Razorpay open error:", error);
-            }
+export const PaymentGateway = ({ paymentSessionId }) => {
 
-        }
+  useEffect(() => {
+
+    const initiatePayment = async () => {
+      try {
+        const cashfree = await load({
+          mode: "sandbox", 
+          // change to "production" in live
+        });
+
+        cashfree.checkout({
+          paymentSessionId: paymentSessionId,
+          redirectTarget: "_self",
+        });
+
+      } catch (error) {
+        console.error("Cashfree checkout error:", error);
+      }
+    };
+
+    if (paymentSessionId) {
+      initiatePayment();
     }
 
-    useEffect(() => {
-        if (orderGenerated?.id) {
-            openPayment()
-        }
-    }, [orderGenerated,isLoading,error])
+  }, [paymentSessionId]);
 
-    return null
-
-}
+  return null;
+};

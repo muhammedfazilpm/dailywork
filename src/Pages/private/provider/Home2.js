@@ -420,9 +420,13 @@ useEffect(() => {
               </h3>
               <p className="text-gray-300 text-sm mt-1">Select a worker to hire</p>
             </div>
+
+     
             
             <div className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {workersMock?.length==0?(<div><p>No worker Found in these location</p>
+              <p>ഈ ലൊക്കേഷനിൽ വർക്കേഴ്സ് ആരും ഇല്ല.</p></div>):(
+<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {workersMock.map((worker) => (
                   <div
                     key={worker.id}
@@ -489,6 +493,8 @@ useEffect(() => {
                   </div>
                 ))}
               </div>
+              )}
+              
 
               <div className="text-center mt-6 pt-6 border-t">
                 <button

@@ -56,8 +56,8 @@ function App() {
    <Route path='/addprofile' element={<Addprofiles/>}/>
    <Route path='/mobileotp' element={<Mobileotp/>}/>
 
-<Route path='/home2' element={<ProtectedRoutespro><Home2/></ProtectedRoutespro>}/>
-<Route path='/payment-status' element={<ProtectedRoutespro><PaymentStatus/></ProtectedRoutespro>}/>
+   <Route path='/home2' element={<ProtectedRoutespro><Home2/></ProtectedRoutespro>}/>
+   <Route path='/payment-status' element={<ProtectedRoutespro><PaymentStatus/></ProtectedRoutespro>}/>
    </Routes>
    
    

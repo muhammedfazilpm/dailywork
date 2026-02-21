@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://www.kooliapp.in/sitemap.xml
+Sitemap: https://kooliapp.in/sitemap.xml

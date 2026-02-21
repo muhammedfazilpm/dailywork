@@ -36,6 +36,9 @@ function Navbar() {
             <li>
               <Link to="/home" className="block py-2 px-3 text-white bg-red-600 rounded md:bg-transparent md:text-white md:hover:text-red-300 md:p-0">Home</Link>
             </li>
+             <li>
+              <Link to="/blog" className="block py-2 px-3 text-white bg-red-600 rounded md:bg-transparent md:text-white md:hover:text-red-300 md:p-0">Blog</Link>
+            </li>
             {/* <li>
               <Link to='/profile' className="block py-2 px-3 text-white rounded hover:bg-red-800 md:hover:bg-transparent md:border-0 md:hover:text-red-300 md:p-0">Listed Works</Link>
             </li>

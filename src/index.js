@@ -5,6 +5,7 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 import 'tailwindcss/tailwind.css'
 import 'flowbite'
+import { HelmetProvider } from "react-helmet-async";
 
 
 
@@ -12,7 +13,9 @@ import 'flowbite'
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
+     <HelmetProvider>
     <App />
+    </HelmetProvider>
   </React.StrictMode>
 );
 

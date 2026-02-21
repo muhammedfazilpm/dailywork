@@ -2,8 +2,22 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import '../i18n';
 import { useTranslation } from 'react-i18next';
+import { Helmet } from "react-helmet-async";
 
 const LandingPage = () => {
+
+const organizationSchema = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "KooliApp",
+    url: "https://kooliapp.in",
+    logo: "https://kooliapp.in/kooliapplogo.png",
+    sameAs: [
+      "https://www.instagram.com/kooli_app",
+      "https://www.facebook.com/people/Kooli-App"
+    ]
+  };
+
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
 
@@ -11,8 +25,33 @@ const LandingPage = () => {
     i18n.changeLanguage(lng);
   };
 
+
+  
   return (
     <div className="min-h-screen w-full bg-white text-gray-800 font-sans">
+      <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(organizationSchema),
+        }}
+      />
+      
+      <h1 className="hidden">Book Daily Wage Workers in Kerala</h1>
+    </>
+<Helmet>
+
+  <title>KooliApp – Find Workers & Daily Wage Jobs Near You</title>
+  <meta name="description" content="KooliApp connects workers and work providers by location. Hire skilled workers or find daily wage jobs easily. Unlock contact details for just ₹10." />
+  <meta name="keywords" content="daily wage workers, hire workers near me, kooli jobs, labor jobs India, find workers Kerala" />
+
+
+  <meta property="og:title" content="കൂലി ആപ്പ് - തൊഴിലാളികളെയും ജോലികളെയും കണ്ടെത്താം | KooliApp" />
+  <meta name="description" lang="ml" content="നിങ്ങളുടെ അടുത്തുള്ള തൊഴിലാളികളെ കണ്ടെത്താനും ജോലികൾ ലഭിക്കാനും KooliApp സഹായിക്കുന്നു. വെറും 10 രൂപയ്ക്ക് കോൺടാക്റ്റ് വിവരങ്ങൾ നേടാം." />
+  <meta name="keywords" lang="ml" content="ജോലി ഒഴിവുകൾ, തൊഴിലാളികൾ, കൂലിപ്പണി, find workers in Kerala, thozhilalikal, jolikal" />
+</Helmet>
+
+<h1 className="hidden">Book Daily Wage Workers in Kerala</h1>
       {/* Navigation */}
       <nav className="bg-white shadow-sm py-4 px-6 flex justify-between items-center">
         <div className="text-2xl font-bold text-red-600">Kooliapp</div>
@@ -182,7 +221,7 @@ const LandingPage = () => {
   >
     <img
       src="https://static.vecteezy.com/system/resources/previews/046/837/315/large_2x/middle-aged-indian-construction-worker-smiling-at-work-site-industrial-background-diverse-workforce-concept-professional-stock-image-for-editor-photo.jpg"
-      alt="Worker"
+      alt="daily wage workers in Kerala"
       className="w-full h-48 object-cover rounded-t-xl"
     />
 
@@ -207,7 +246,7 @@ const LandingPage = () => {
   >
     <img
       src="https://media.istockphoto.com/id/1300212959/photo/contractor-talking-to-a-woman-about-remodeling-her-house.jpg?s=612x612&w=0&k=20&c=urjP8mIErIIdGJcqF7Kfn9VkNrXRncFGRaTt5Q2d4rY="
-      alt="Employer"
+      alt="Plumber Electrician Photographer"
       className="w-full h-48 object-cover rounded-t-xl"
     />
 
@@ -390,6 +429,12 @@ const LandingPage = () => {
               className="hover:text-white transition"
             >
               Refund Policy
+            </button>
+             <button
+              onClick={() => navigate("/blog")}
+              className="hover:text-white transition"
+            >
+              Blog
             </button>
           </div>
         </div>

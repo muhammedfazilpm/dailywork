@@ -191,6 +191,7 @@ useEffect(() => {
   return (
     <div className="w-full bg-gray-50 min-h-screen">
       <Navbar />
+      <h1 className="hidden">Book Daily Wage Workers in Kerala</h1>
 
       <div className="min-h-[90vh] p-4 md:p-6 max-w-7xl mx-auto space-y-6">
         {/* Header Section */}

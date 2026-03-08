@@ -23,6 +23,7 @@ import Home2 from './Pages/private/provider/Home2';
 import TermsAndConditions from './Pages/public/TermsAndConditions';
 import RefundPolicy from './Pages/public/RefundPolicy';
 import PaymentStatus from './Pages/private/PaymentStatus';
+import WorkerPaymentStatus from './Pages/private/worker/WorkerPaymentStatus';
 import BlogPage from './Pages/public/BlogPage';
 import KooliBlog from './Pages/public/BlogPage';
 function App() {
@@ -61,6 +62,7 @@ function App() {
 
    <Route path='/home2' element={<ProtectedRoutespro><Home2/></ProtectedRoutespro>}/>
    <Route path='/payment-status' element={<PaymentStatus/>}/>
+   <Route path='/worker-payment-status' element={<WorkerPaymentStatus/>}/>
    </Routes>
    
    

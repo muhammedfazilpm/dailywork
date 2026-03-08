@@ -360,69 +360,81 @@ useEffect(() => {
       </div>
 
       {/* Location Modal */}
-      {showLocationModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden">
-            <div className="bg-red-600 p-6">
-              <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                <FaMapMarkerAlt />
-                Select Your Location and Work
-              </h3>
-            </div>
-            
-            <div className="p-6">
-              <div className="relative mb-4">
-                {/* <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" /> */}
-                             <Select
-  options={locationOptions}
-  value={selectedLocation}
-  onChange={setSelectedLocation}
-  placeholder="Search location "
-  isSearchable
-/>
+     {showLocationModal && (
+  <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+    <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl">
+      
+      {/* Header */}
+      <div className="bg-red-600 p-6 rounded-t-2xl">
+        <h3 className="text-xl font-bold text-white flex items-center gap-2">
+          <FaMapMarkerAlt />
+          Select Your Location and Work
+        </h3>
+      </div>
 
-                             <Select
-                             className="mt-4"
-  options={workOptions}
-  value={selectedWork}
-  onChange={setSelectedWork}
-  placeholder="Search work "
-  isSearchable
-/>
-              </div>
+      {/* Body */}
+      <div className="p-6">
+        <div className="relative mb-4">
 
-              
+          {/* Location Select */}
+          <Select
+            options={locationOptions}
+            value={selectedLocation}
+            onChange={setSelectedLocation}
+            placeholder="Search location"
+            isSearchable
+            menuPortalTarget={document.body}
+            styles={{
+              menuPortal: (base) => ({ ...base, zIndex: 9999 })
+            }}
+          />
 
-              
-            </div>
+          {/* Work Select */}
+          <Select
+            className="mt-4"
+            options={workOptions}
+            value={selectedWork}
+            onChange={setSelectedWork}
+            placeholder="Search work"
+            isSearchable
+            menuPortalTarget={document.body}
+            styles={{
+              menuPortal: (base) => ({ ...base, zIndex: 9999 })
+            }}
+          />
 
-             <div className="p-2">
-             
-              
-
-              <div className="flex justify-end gap-3 mt-6 pt-6 border-t">
-                <button
-                  onClick={() => {
-                    setShowLocationModal(false);
-                    setSelectedLocation("");
-                    setSearch("");
-                  }}
-                  className="px-5 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleGetWorkers}
-                  disabled={!selectedLocation||!selectedWork}
-                  className="px-5 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Find Workers
-                </button>
-              </div>
-            </div>
-          </div>
         </div>
-      )}
+      </div>
+
+      {/* Footer */}
+      <div className="p-4 border-t">
+        <div className="flex justify-end gap-3">
+
+          <button
+            onClick={() => {
+              setShowLocationModal(false);
+              setSelectedLocation(null);
+              setSelectedWork(null);
+            }}
+            className="px-5 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
+          >
+            Cancel
+          </button>
+
+          <button
+            onClick={handleGetWorkers}
+            disabled={!selectedLocation || !selectedWork}
+            className="px-5 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Find Workers
+          </button>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+)}
 
       {/* Worker List Modal */}
       {showWorkerModal && (

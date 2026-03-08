@@ -2,12 +2,13 @@ import React, { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import toast from "react-hot-toast";
-import { verifyPayment } from "../../Services.js/WorkerApi";
+import { verifyPayment, workerJobVerifyPay } from "../../Services.js/WorkerApi";
 
 const PaymentStatus = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const token = localStorage.getItem("providertoken");
+  const token2= localStorage.getItem("token");
 
   const [status, setStatus] = useState("checking");
 
@@ -17,16 +18,23 @@ const PaymentStatus = () => {
     if (orderId) {
       verifyOrder();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orderId]);
 
   const verifyOrder = async () => {
     try {
+      let apiUrl = verifyPayment;
+      let passtoken=token
+      // check order prefix
+      if (orderId.startsWith("worker_order")) {
+        passtoken=token2
+        apiUrl = workerJobVerifyPay;
+      }
+
       const res = await axios.post(
-        verifyPayment,
+        apiUrl,
         { orderId },
         {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: { Authorization: `Bearer ${passtoken}` },
         }
       );
 
@@ -61,7 +69,7 @@ const PaymentStatus = () => {
               Your payment was successful. You can now view contact numbers.
             </p>
             <button
-              onClick={() => navigate("/home2")}
+              onClick={() => navigate(orderId.startsWith("worker_order")?'/home':"/home2")}
               className="bg-green-600 text-white px-6 py-2 rounded-lg"
             >
               Go Back

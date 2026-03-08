@@ -206,7 +206,7 @@ getAllLocation()
     try {
       const res = await axios.post(
         workerJobPurchase,
-        { amount: 100 },
+        { amount: 10 },
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -613,7 +613,7 @@ getAllLocation()
                     onClick={handleJobsPayment}
                     className="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 text-sm"
                   >
-                    Unlock all contacts (₹100)
+                    Unlock all contacts for 24 hours (₹10)
                   </button>
                 </div>
               )}

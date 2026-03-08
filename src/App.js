@@ -60,7 +60,7 @@ function App() {
    <Route path='/blog' element={<KooliBlog/>}/>
 
    <Route path='/home2' element={<ProtectedRoutespro><Home2/></ProtectedRoutespro>}/>
-   <Route path='/payment-status' element={<ProtectedRoutespro><PaymentStatus/></ProtectedRoutespro>}/>
+   <Route path='/payment-status' element={<PaymentStatus/>}/>
    </Routes>
    
    

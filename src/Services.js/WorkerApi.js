@@ -1,7 +1,7 @@
 
-// let workapi="http://localhost:3000"
+let workapi="http://localhost:3000"
 
-let workapi="https://backend.kooliapp.in"
+// let workapi="https://backend.kooliapp.in"
 
 let workerRegister=workapi+'/server/user/register/'
 
@@ -37,6 +37,12 @@ let verifyAddress=workapi+'/api/worker/verifyAddress'
 
 let verifyPayment=workapi+'/server/provider/verifyPay'
 
+let providerJobAdd=workapi+'/server/provider/addJob'
+
+// Worker job flow APIs
+let workerGetJobs=workapi+'/server/worker/getJobs'
+let workerJobPurchase=workapi+'/server/worker/job/purchase'
+let workerJobVerifyPay=workapi+'/server/worker/job/verifyPay'
 
 let worker_register=workapi+'/api/worker/register-provider'
  
@@ -73,5 +79,9 @@ module.exports={
     purchase,
     forgotPasswordApi,
     verifyOtpApi,
-    providerauth
+    providerauth,
+    providerJobAdd,
+    workerGetJobs,
+    workerJobPurchase,
+    workerJobVerifyPay
 }

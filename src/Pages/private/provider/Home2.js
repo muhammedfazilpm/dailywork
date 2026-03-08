@@ -9,7 +9,7 @@ import Swal from "sweetalert2";
 import { PaymentGateway } from "../../../Services/Paymentgateway";
 import { load } from "@cashfreepayments/cashfree-js";
 import { FaSearch, FaPlus, FaMapMarkerAlt, FaUser, FaRupeeSign, FaBriefcase } from "react-icons/fa";
-import { Allwork, locationAll ,workersListBylocation,purchase, verifyPayment} from "../../../Services.js/WorkerApi";
+import { Allwork, locationAll ,workersListBylocation,purchase, verifyPayment, providerJobAdd} from "../../../Services.js/WorkerApi";
 import toast from "react-hot-toast";
 
 
@@ -32,16 +32,13 @@ function Home2() {
   const [selectedWork, setSelectedWork] = useState("");
 
   const [jobTitle, setJobTitle] = useState("");
-  const [jobAmount, setJobAmount] = useState("");
-  const [jobDescription, setJobDescription] = useState("");
-  const [jobCategory, setJobCategory] = useState("");
+  const [salaryPerMonth, setSalaryPerMonth] = useState(0);
+  const [jobLocation, setJobLocation] = useState(null);
   const [profile,setProfile]=useState(null)
   const [locations,setLocations]=useState([])
   const [works,setWorks]=useState([])
 
-  const [postedJobs, setPostedJobs] = useState([
-    // { id: 1, title: "Plumbing Repair", amount: 1500, date: "2024-01-15", status: "Pending" },
-  ]);
+  const [postedJobs, setPostedJobs] = useState([]);
   const [workersMock,setWorkersMock]=useState([])
   const [open, setOpen] = useState(false);
 
@@ -162,29 +159,46 @@ useEffect(() => {
   }
 }, [token]);
 
-  const jobCategories = ["Plumbing", "Electrical", "Carpentry", "Cleaning", "Painting", "Other"];
+  const handlePostJob = async () => {
+    if (!jobTitle || !jobLocation) {
+      toast.error("Please enter job title and select location");
+      return;
+    }
 
-  
+    try {
+      const res = await axios.post(
+        providerJobAdd,
+        {
+          locationId: jobLocation.value,
+          jobTitle: jobTitle.trim(),
+          salaryPerMonth: parseInt(salaryPerMonth),
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
 
-
-  const handlePostJob = () => {
-    if (jobTitle && jobAmount && jobDescription) {
-      const newJob = {
-        id: postedJobs.length + 1,
-        title: jobTitle,
-        amount: parseInt(jobAmount),
-        date: new Date().toISOString().split('T')[0],
-        status: "Pending",
-        description: jobDescription,
-        category: jobCategory
-      };
-      setPostedJobs([newJob, ...postedJobs]);
-      setShowPostJobModal(false);
-      setJobTitle("");
-      setJobAmount("");
-      setJobDescription("");
-      setJobCategory("");
+      if (res?.status=== 201) {
+        toast.success(res?.data?.message || "Job added successfully");
+        const savedJob = res?.data?.data;
+        const jobWithLocation = {
+          ...savedJob,
+          locationLabel: jobLocation.label,
+        };
+        setPostedJobs((prev) => [jobWithLocation, ...prev]);
+        setShowPostJobModal(false);
+        setJobTitle("");
+        setSalaryPerMonth(0)
+        setJobLocation(null);
+      } else {
+        toast.error(res?.data?.message || "Failed to add job");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error(error?.response?.data?.message || "Failed to add job");
     }
   };
 
@@ -239,33 +253,33 @@ useEffect(() => {
               {postedJobs.length > 0 ? (
                 <div className="space-y-4">
                   {postedJobs.map((job) => (
-                    <div key={job.id} className="border border-gray-200 rounded-xl p-4 hover:border-red-200 hover:bg-red-50 transition">
+                    <div
+                      key={job._id}
+                      className="border border-gray-200 rounded-xl p-4 hover:border-red-200 hover:bg-red-50 transition"
+                    >
                       <div className="flex justify-between items-start">
                         <div>
-                          <h3 className="font-bold text-lg text-gray-900">{job.title}</h3>
-                          <p className="text-gray-600 text-sm mt-1">Posted on {job.date}</p>
-                          {job.description && (
-                            <p className="text-gray-500 text-sm mt-2 line-clamp-2">{job.description}</p>
+                          <h3 className="font-bold text-lg text-gray-900">
+                            {job.jobTitle}
+                          </h3>
+                          <p className="text-gray-600 text-sm mt-1">
+                            Posted on{" "}
+                            {job.createdAt
+                              ? new Date(job.createdAt).toLocaleDateString("en-IN")
+                              : "-"}
+                          </p>
+                          {job.locationLabel && (
+                            <p className="text-gray-500 text-sm mt-2">
+                              Location: {job.locationLabel}
+                            </p>
                           )}
                         </div>
                         <div className="text-right">
-                          <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                            job.status === "Completed" 
-                              ? "bg-green-100 text-green-800" 
-                              : "bg-yellow-100 text-yellow-800"
-                          }`}>
-                            {job.status}
+                          <span className="px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                            Active
                           </span>
-                          <p className="text-2xl font-bold text-gray-900 mt-2">₹{job.amount}</p>
                         </div>
                       </div>
-                      {job.category && (
-                        <div className="mt-3">
-                          <span className="inline-block px-3 py-1 bg-black text-white rounded-full text-xs">
-                            {job.category}
-                          </span>
-                        </div>
-                      )}
                     </div>
                   ))}
                 </div>
@@ -513,34 +527,29 @@ useEffect(() => {
       {/* Post Job Modal */}
       {showPostJobModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden">
-   <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-  {/* Card */}
-  <div className="relative bg-white rounded-2xl shadow-xl w-[90%] max-w-md p-8 text-center">
-    {/* Close Button */}
-    <button onClick={()=>setShowPostJobModal(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 text-2xl font-bold" onclick="document.getElementById('comingSoon').remove()">
-      ×
-    </button>
-    <h1 className="text-3xl font-bold text-gray-800 mb-3">
-      🚀 Coming Soon
-    </h1>
-    <p className="text-gray-600 mb-6">
-      We’re working hard to bring you something awesome. Stay tuned!
-    </p>
-    <span className="inline-block bg-blue-100 text-blue-600 px-4 py-2 rounded-full text-sm font-medium">
-      Launching Soon
-    </span>
-  </div>
-</div>
-
-
-            {/* <div className="bg-red-600 p-2">
+          <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden relative">
+            <div className="bg-red-600 p-4">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowPostJobModal(false);
+                  setJobTitle("");
+                  setSalaryPerMonth(0);
+                  setJobLocation(null);
+                }}
+                className="absolute top-3 right-3 text-white/80 hover:text-white text-2xl leading-none"
+              >
+                ×
+              </button>
               <h3 className="text-xl font-bold text-white flex items-center gap-2">
-              
+                <FaBriefcase />
+                Post a Job
               </h3>
-              <p className="text-red-100 text-sm mt-1">Fill in the details to find the right worker</p>
-            </div> */}
-{/*             
+              <p className="text-red-100 text-sm mt-1">
+                Share your work requirement and we’ll notify workers in the selected location
+              </p>
+            </div>
+
             <div className="p-6">
               <div className="space-y-4">
                 <div>
@@ -549,67 +558,55 @@ useEffect(() => {
                   </label>
                   <input
                     type="text"
-                    placeholder="e.g., Plumbing Repair, Painting Work"
+                    placeholder="Enter the job Name"
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
                     value={jobTitle}
                     onChange={(e) => setJobTitle(e.target.value)}
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Category
-                  </label>
-                  <select
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                    value={jobCategory}
-                    onChange={(e) => setJobCategory(e.target.value)}
-                  >
-                    <option value="">Select a category</option>
-                    {jobCategories.map((cat) => (
-                      <option key={cat} value={cat}>{cat}</option>
-                    ))}
-                  </select>
-                </div>
+                
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Job Description *
+                    Location *
                   </label>
-                  <textarea
-                    placeholder="Describe the work requirements..."
-                    rows="4"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                    value={jobDescription}
-                    onChange={(e) => setJobDescription(e.target.value)}
+                  <Select
+                    options={locationOptions}
+                    value={jobLocation}
+                    onChange={setJobLocation}
+                    placeholder="Select job location"
+                    isSearchable
                   />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Budget (₹) *
-                  </label>
-                  <div className="relative">
-                    <FaRupeeSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                    <input
-                      type="number"
-                      placeholder="Enter amount"
-                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                      value={jobAmount}
-                      onChange={(e) => setJobAmount(e.target.value)}
-                    />
-                  </div>
+                  {jobLocation && (
+                    <p className="mt-2 text-xs text-gray-500">
+                      {jobLocation.place}, {jobLocation.town}, {jobLocation.district},{" "}
+                      {jobLocation.state}
+                    </p>
+                  )}
                 </div>
               </div>
+
+
+              <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Job Title *
+                  </label>
+                  <input
+                    type="number"
+                    placeholder="Enter the Salary Per Month"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                    value={salaryPerMonth}
+                    onChange={(e) => setSalaryPerMonth(e.target.value)}
+                  />
+                </div>
 
               <div className="flex justify-end gap-3 mt-8 pt-6 border-t">
                 <button
                   onClick={() => {
                     setShowPostJobModal(false);
                     setJobTitle("");
-                    setJobAmount("");
-                    setJobDescription("");
-                    setJobCategory("");
+                    setJobLocation(null);
                   }}
                   className="px-5 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
                 >
@@ -617,13 +614,13 @@ useEffect(() => {
                 </button>
                 <button
                   onClick={handlePostJob}
-                  disabled={!jobTitle || !jobAmount || !jobDescription}
+                  disabled={!jobTitle || !jobLocation}
                   className="px-5 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Post Job
                 </button>
               </div>
-            </div> */}
+            </div>
           </div>
         </div>
       )}

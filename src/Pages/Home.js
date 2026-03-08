@@ -12,11 +12,14 @@ import {
   verifyAddress,
   verifyPayment,
   workerWorkGet,
-  locationAll
+  locationAll,
+  workerGetJobs,
+  workerJobPurchase,
 } from "../Services.js/WorkerApi";
 import axios from "axios";
 import Select from "react-select";
 import toast from "react-hot-toast";
+import { load } from "@cashfreepayments/cashfree-js";
 
 function loadScript(src) {
   return new Promise((resolve) => {
@@ -49,6 +52,11 @@ function Home() {
   const [workItems, setWorkItems] = useState([]);
   const[allLocation,setAllLocation]=useState([])
   const [paymentType, setPaymentType] = useState(null);
+
+  // Jobs posted by providers (worker job flow)
+  const [jobs, setJobs] = useState([]);
+  const [selectedJobLocation, setSelectedJobLocation] = useState(null);
+  const [jobsLoading, setJobsLoading] = useState(false);
 
 
 
@@ -166,6 +174,66 @@ getAllLocation()
   town: loc.town,
   place: loc.place,
 }));
+
+  const handleFetchJobs = async () => {
+    if (!selectedJobLocation) {
+      toast.error("Please select a location");
+      return;
+    }
+
+    try {
+      setJobsLoading(true);
+      const res = await axios.get(
+        `${workerGetJobs}?locationId=${selectedJobLocation.value}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setJobs(res?.data?.data || []);
+      if (!res?.data?.data || res.data.data.length === 0) {
+        toast("No jobs found for this location yet");
+      }
+    } catch (error) {
+      toast.error(
+        error?.response?.data?.message || "Failed to load jobs for this location"
+      );
+    } finally {
+      setJobsLoading(false);
+    }
+  };
+
+  const handleJobsPayment = async () => {
+    try {
+      const res = await axios.post(
+        workerJobPurchase,
+        { amount: 100 },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      if (res?.status === 200) {
+        const paymentSessionId = res?.data?.data?.payment_session_id;
+
+        if (!paymentSessionId) {
+          toast.error("Payment session not received");
+          return;
+        }
+
+        const cashfree = await load({
+          mode: "production", // change to "sandbox" in testing
+        });
+
+        await cashfree.checkout({
+          paymentSessionId,
+          redirectTarget: "_self",
+        });
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Try again after some time");
+    }
+  };
 
 
   /** ---------------- WORKS ---------------- **/
@@ -510,51 +578,115 @@ getAllLocation()
           
 
             <div className="bg-white rounded-lg shadow-md p-6 border border-red-200">
-      <h2 className="text-xl font-semibold text-red-700 mb-4 pb-2 border-b border-red-100">
-        Work List
-      </h2>
-      
-      {/* <div className="space-y-4">
-        {workItems.map(item => (
-          <div 
-            key={item.id}
-            className={`border rounded-lg p-4 transition-all duration-200 ${
-              item.status === "assigned" 
-                ? "border-green-300 bg-green-50" 
-                : "border-gray-200 hover:border-red-300 hover:shadow-sm"
-            }`}
-          >
-            <div className="flex justify-between items-start">
-              <div className="flex-1">
-                <h3 className="font-medium text-gray-800">{item.location}</h3>
-                <p className="text-gray-600 text-sm mt-1">{item.description}</p>
+              <h2 className="text-xl font-semibold text-red-700 mb-4 pb-2 border-b border-red-100">
+                Available Jobs in Your Location
+              </h2>
+
+              <p className="text-sm text-gray-600 mb-4">
+                നിങ്ങളുടെ സ്ഥലത്ത് പോസ്റ്റ് ചെയ്തിട്ടുള്ള ജോലികൾ ഇവിടെ കാണാം.
+                Select a location to see jobs posted by providers. If you have an active
+                subscription, you will also see their contact numbers.
+              </p>
+
+              <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-end mb-4">
+                <div className="flex-1">
+                  <Select
+                    options={locationOptions}
+                    value={selectedJobLocation}
+                    onChange={setSelectedJobLocation}
+                    placeholder="Select your location"
+                    isSearchable
+                  />
+                </div>
+                <button
+                  onClick={handleFetchJobs}
+                  disabled={jobsLoading || !selectedJobLocation}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {jobsLoading ? "Loading..." : "Find Jobs"}
+                </button>
               </div>
-              
-              <button
-                onClick={() => handleGetNumber(item.id)}
-                disabled={item.status === "assigned"}
-                className={`ml-4 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                  item.status === "assigned"
-                    ? "bg-green-100 text-green-800 cursor-default"
-                    : "bg-red-100 text-red-700 hover:bg-red-200"
-                }`}
-              >
-                {item.status === "assigned" ? "Assigned #" + item.id : "Get Number"}
-              </button>
+
+              {jobs.length > 0 && (
+                <div className="mb-4 flex justify-end">
+                  <button
+                    onClick={handleJobsPayment}
+                    className="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 text-sm"
+                  >
+                    Unlock all contacts (₹100)
+                  </button>
+                </div>
+              )}
+
+              <div className="space-y-3 max-h-80 overflow-y-auto">
+                {jobs.length === 0 && !jobsLoading && (
+                  <p className="text-sm text-gray-500">
+                    നിലവിൽ ജോലികൾ ഒന്നും കണ്ടില്ല. Please select a location and click
+                    "Find Jobs" to see available work.
+                  </p>
+                )}
+
+                {jobs.map((job) => {
+                  const salary =
+                    job.salary ??
+                    job.amount ??
+                    job.budget ??
+                    job.offeredAmount ??
+                    null;
+
+                  return (
+                    <div
+                      key={job._id}
+                      className="border border-gray-200 rounded-lg p-4 hover:border-red-300 hover:bg-red-50 transition"
+                    >
+                      <div className="flex justify-between items-start gap-4">
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-gray-900">
+                            {job.jobTitle}
+                          </h3>
+                          <p className="text-xs text-gray-500 mt-1">
+                            Posted on{" "}
+                            {job.createdAt
+                              ? new Date(job.createdAt).toLocaleDateString("en-IN")
+                              : "-"}
+                          </p>
+                          {salary && (
+                            <p className="mt-2 text-sm text-gray-800 font-medium">
+                              Salary: ₹{salary}
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="text-right min-w-[120px]">
+                          {job.contactNo ? (
+                            <>
+                              <p className="text-xs text-green-700 font-semibold mb-1">
+                                Contact unlocked
+                              </p>
+                              <p className="text-sm font-medium text-gray-900">
+                                {job.contactNo}
+                              </p>
+                            </>
+                          ) : (
+                            <>
+                            <p className="text-xs text-amber-700 font-medium">
+                              Contact number locked
+                              <br />
+                              (complete payment to unlock)
+                            </p>
+                           
+                            
+                            
+                            </>
+                          
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-            
-            {item.status === "assigned" && (
-              <div className="mt-2 text-xs text-green-600 font-medium">
-                Work order #{item.id} has been assigned to you
-              </div>
-            )}
-          </div>
-        ))}
-      </div> */}
-<p>നിങ്ങളുടെ സ്ഥലത്തുള്ള ജോലികൾ ഇവിടെ കാണാം.</p>     
- <p>Here we will list the Work that have in your location</p>
-      <h1 className="font-bold mt-4">Comming Soon..</h1>
-    </div>
           
         </div>
       </div>

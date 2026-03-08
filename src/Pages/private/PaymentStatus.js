@@ -2,12 +2,14 @@ import React, { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import toast from "react-hot-toast";
-import { verifyPayment } from "../../Services.js/WorkerApi";
+import { verifyPayment, workerJobVerifyPay } from "../../Services.js/WorkerApi";
 
 const PaymentStatus = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const token = localStorage.getItem("providertoken");
+
+  const providerToken = localStorage.getItem("providertoken");
+  const workerToken = localStorage.getItem("token");
 
   const [status, setStatus] = useState("checking");
 
@@ -17,12 +19,27 @@ const PaymentStatus = () => {
     if (orderId) {
       verifyOrder();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orderId]);
 
   const verifyOrder = async () => {
     try {
+      let url = null;
+      let token = null;
+
+      if (providerToken) {
+        url = verifyPayment;
+        token = providerToken;
+      } else if (workerToken) {
+        url = workerJobVerifyPay;
+        token = workerToken;
+      } else {
+        setStatus("failed");
+        return;
+      }
+
       const res = await axios.post(
-        verifyPayment,
+        url,
         { orderId },
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -35,17 +52,17 @@ const PaymentStatus = () => {
       } else {
         setStatus("failed");
       }
-
     } catch (error) {
       console.error(error);
       setStatus("failed");
     }
   };
 
+  const goBackPath = providerToken ? "/home2" : "/home";
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="bg-white shadow-xl rounded-xl p-8 text-center w-[90%] max-w-md">
-
         {status === "checking" && (
           <>
             <h2 className="text-xl font-bold mb-4">Checking Payment...</h2>
@@ -62,7 +79,7 @@ const PaymentStatus = () => {
               Your payment was successful. You can now view contact numbers.
             </p>
             <button
-              onClick={() => navigate("/home2")}
+              onClick={() => navigate(goBackPath)}
               className="bg-green-600 text-white px-6 py-2 rounded-lg"
             >
               Go Back
@@ -79,14 +96,13 @@ const PaymentStatus = () => {
               Something went wrong. Please try again.
             </p>
             <button
-              onClick={() => navigate("/home2")}
+              onClick={() => navigate(goBackPath)}
               className="bg-red-600 text-white px-6 py-2 rounded-lg"
             >
               Try Again
             </button>
           </>
         )}
-
       </div>
     </div>
   );

@@ -26,6 +26,8 @@ import PaymentStatus from './Pages/private/PaymentStatus';
 import WorkerPaymentStatus from './Pages/private/worker/WorkerPaymentStatus';
 import BlogPage from './Pages/public/BlogPage';
 import KooliBlog from './Pages/public/BlogPage';
+import WhatsAppFloat from './Components/WhatsAppFloat';
+
 function App() {
   
   return (
@@ -37,6 +39,7 @@ function App() {
       <p>{t('login')}</p>
     </div> */}
   <Toaster position="top-center" reverseOrder={false} />
+  <WhatsAppFloat />
 
    <BrowserRouter>
    <Routes>

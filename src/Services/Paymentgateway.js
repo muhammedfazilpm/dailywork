@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { load } from "@cashfreepayments/cashfree-js";
+import { getCashfreeMode } from "../config/appEnv";
 
 export const PaymentGateway = ({ paymentSessionId }) => {
 
@@ -8,8 +9,7 @@ export const PaymentGateway = ({ paymentSessionId }) => {
     const initiatePayment = async () => {
       try {
         const cashfree = await load({
-          mode: "sandbox", 
-          // change to "production" in live
+          mode: getCashfreeMode(),
         });
 
         cashfree.checkout({

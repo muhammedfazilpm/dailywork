@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
+import { useSearchParams } from "react-router-dom";
 import Navbar from "../../../Components/Layout/Navbar";
 import Footer from "../../../Components/Layout/Footer";
 import { FaPhoneAlt, FaWhatsapp } from "react-icons/fa";
@@ -8,6 +9,7 @@ import Select from "react-select";
 import Swal from "sweetalert2";
 import { PaymentGateway } from "../../../Services/Paymentgateway";
 import { load } from "@cashfreepayments/cashfree-js";
+import { getCashfreeMode } from "../../../config/appEnv";
 import { FaSearch, FaPlus, FaMapMarkerAlt, FaUser, FaRupeeSign, FaBriefcase } from "react-icons/fa";
 import { Allwork, locationAll ,workersListBylocation,purchase, verifyPayment, providerJobAdd} from "../../../Services.js/WorkerApi";
 import toast from "react-hot-toast";
@@ -16,9 +18,12 @@ import toast from "react-hot-toast";
 
 
 
+const PROVIDER_WORKER_SEARCH_KEY = "providerWorkerSearch";
+
 function Home2() {
   let cashfree;
   const token = localStorage.getItem("providertoken");
+  const [searchParams, setSearchParams] = useSearchParams();
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [showWorkerModal, setShowWorkerModal] = useState(false);
   const [showPostJobModal, setShowPostJobModal] = useState(false);
@@ -42,21 +47,49 @@ function Home2() {
   const [workersMock,setWorkersMock]=useState([])
   const [open, setOpen] = useState(false);
 
+  const fetchWorkersForSearch = useCallback(
+    async (locationId, workId) => {
+      const res = await axios.get(
+        `${workersListBylocation}?locationId=${encodeURIComponent(locationId)}&workId=${encodeURIComponent(workId)}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      return res?.data?.data ?? [];
+    },
+    [token]
+  );
 
-    const handleGetWorkers = async() => {
-    try {
-       
-    const res = await axios.get(`${workersListBylocation}?locationId=${selectedLocation?.value}&&workId=${selectedWork?.value}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setWorkersMock(res?.data?.data)
-    setShowLocationModal(false);
-    setShowWorkerModal(true);
-        
-    } catch (error) {
-        
+  const handleGetWorkers = async () => {
+    if (!selectedLocation?.value || !selectedWork?.value) {
+      toast.error("Please select both location and work type");
+      return;
     }
-
+    try {
+      const list = await fetchWorkersForSearch(
+        selectedLocation.value,
+        selectedWork.value
+      );
+      setWorkersMock(list);
+      sessionStorage.setItem(
+        PROVIDER_WORKER_SEARCH_KEY,
+        JSON.stringify({
+          locationId: selectedLocation.value,
+          workId: selectedWork.value,
+          label: selectedLocation.label,
+          workLabel: selectedWork.label,
+          place: selectedLocation.place,
+          town: selectedLocation.town,
+          district: selectedLocation.district,
+          state: selectedLocation.state,
+        })
+      );
+      setShowLocationModal(false);
+      setShowWorkerModal(true);
+    } catch (error) {
+      const msg =
+        error?.response?.data?.message ||
+        "Could not load workers for this location and work type.";
+      toast.error(msg);
+    }
   };
 
 
@@ -89,10 +122,21 @@ const getAllLocation=async()=>{
   }
 
 const createPayment = async () => {
+  if (!selectedLocation?.value || !selectedWork?.value) {
+    toast.error(
+      "Close this dialog, use Find Worker again, and pick location + work before paying."
+    );
+    setOpen(false);
+    return;
+  }
   try {
     const res = await axios.post(
       purchase,
-      { amount: 10 },
+      {
+        amount: 10,
+        locationId: selectedLocation.value,
+        workId: selectedWork.value,
+      },
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -100,32 +144,43 @@ const createPayment = async () => {
       }
     );
 
-
     if (res?.status === 200) {
-
-      const paymentSessionId =
-        res?.data?.data?.payment_session_id;
-
+      const paymentSessionId = res?.data?.data?.payment_session_id;
 
       if (!paymentSessionId) {
         toast.error("Payment session not received");
         return;
       }
 
-      // Load SDK
+      sessionStorage.setItem(
+        PROVIDER_WORKER_SEARCH_KEY,
+        JSON.stringify({
+          locationId: selectedLocation.value,
+          workId: selectedWork.value,
+          label: selectedLocation.label,
+          workLabel: selectedWork.label,
+          place: selectedLocation.place,
+          town: selectedLocation.town,
+          district: selectedLocation.district,
+          state: selectedLocation.state,
+        })
+      );
+
       cashfree = await load({
-        mode: "production", // change to "production" in live
+        mode: getCashfreeMode(),
       });
 
-      // Open Checkout
       cashfree.checkout({
-        paymentSessionId: paymentSessionId, // ✅ correct key
-        redirectTarget: "_self", 
+        paymentSessionId: paymentSessionId,
+        redirectTarget: "_self",
       });
     }
   } catch (error) {
     console.error(error);
-    toast.error("Try again after some time");
+    const msg =
+      error?.response?.data?.message ||
+      "Payment could not be started. Check location and work type, then try again.";
+    toast.error(msg);
   }
 };
 
@@ -133,10 +188,62 @@ const createPayment = async () => {
 
 
 
-  useEffect(()=>{
-    getAllLocation()
-    getAllWork()
-  },[])
+  useEffect(() => {
+    getAllLocation();
+    getAllWork();
+  }, []);
+
+  // After Cashfree redirect + verify: refresh workers for the same location + work (24h unlock)
+  useEffect(() => {
+    if (searchParams.get("unlock") !== "1") return;
+
+    const raw = sessionStorage.getItem(PROVIDER_WORKER_SEARCH_KEY);
+    if (!raw) {
+      setSearchParams({}, { replace: true });
+      toast("Open Find Worker and search again to see updated contacts.");
+      return;
+    }
+
+    let saved;
+    try {
+      saved = JSON.parse(raw);
+    } catch {
+      setSearchParams({}, { replace: true });
+      return;
+    }
+
+    const { locationId, workId, label, workLabel, place, town, district, state } =
+      saved;
+    if (!locationId || !workId) {
+      setSearchParams({}, { replace: true });
+      return;
+    }
+
+    setSelectedLocation({
+      value: locationId,
+      label: label || place || "Location",
+      place,
+      town,
+      district,
+      state,
+    });
+    setSelectedWork({ value: workId, label: workLabel || "Work" });
+
+    (async () => {
+      try {
+        const list = await fetchWorkersForSearch(locationId, workId);
+        setWorkersMock(list);
+        setShowWorkerModal(true);
+        toast.success("Payment verified — contacts are unlocked for this search (24 hours).");
+      } catch (e) {
+        toast.error(
+          e?.response?.data?.message || "Could not refresh worker list."
+        );
+      } finally {
+        setSearchParams({}, { replace: true });
+      }
+    })();
+  }, [searchParams, setSearchParams, fetchWorkersForSearch]);
 
   const locationOptions = locations.map((loc) => ({
   value: loc._id,
@@ -456,7 +563,7 @@ useEffect(() => {
 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {workersMock.map((worker) => (
                   <div
-                    key={worker.id}
+                    key={worker._id || worker.id}
                     className="border border-gray-200 rounded-xl p-5 hover:border-red-300 hover:shadow-md transition"
                   >
                     <div className="flex justify-between items-start">
@@ -639,34 +746,43 @@ useEffect(() => {
 
 
       {open && (
-  <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-    <div className="bg-white rounded-lg p-6 w-80">
-      <h2 className="text-lg font-semibold mb-2">Confirm Payment</h2>
-      <p className="mb-4">You need to pay ₹10 to show All the numbers. Up to 24 hours</p>
-      <p className="mb-4 text-sm md:text-base text-gray-700 font-medium">
-  എല്ലാ നമ്പറുകളും കാണുന്നതിനായി 10 രൂപ Pay ചെയ്യുക . ഇത് 24 മണിക്കൂർ വരെ ലഭ്യമായിരിക്കും.
-</p>
-
-      <div className="flex justify-end gap-3">
-        <button
-          onClick={() => setOpen(false)}
-          className="bg-black text-white px-4 py-2 rounded"
-        >
-          Cancel
-        </button>
-
-        <button
-          onClick={() => {
-            setOpen(false);
-           createPayment()
-          }}
-          className="bg-red-600 text-white px-4 py-2 rounded-2xl"
-        >
-          Pay Now
-        </button>
+  <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+  <div className="bg-white rounded-xl p-6 w-full max-w-sm shadow-2xl">
+    <h2 className="text-xl font-bold mb-3 text-gray-900">Unlock Contact Details</h2>
+    
+    <div className="space-y-3 mb-6">
+      <p className="text-sm text-gray-600 leading-relaxed">
+        Pay once to view worker phone numbers for <strong>this location</strong> and <strong>work type</strong>. Access is valid for 24 hours.
+      </p>
+      
+      <div className="bg-blue-50 p-3 rounded-lg">
+        <p className="text-blue-900 font-semibold">₹10 — Unlimited access for 24h</p>
       </div>
+
+      <p className="text-sm text-gray-700 font-medium leading-relaxed border-t pt-3">
+      ₹10 പേയ്‌ ചെയ്താൽ ഈ സെർച്ചിലെ നമ്പറുകൾ ഇപ്പൊ തന്നെ കാണാം. 24 മണിക്കൂർ വരെ ഈ ഓഫർ ഉണ്ടാകും.      </p>
+    </div>
+
+    <div className="flex justify-end items-center gap-4">
+      <button
+        onClick={() => setOpen(false)}
+        className="text-gray-600 hover:text-black font-medium transition-colors"
+      >
+        Cancel
+      </button>
+
+      <button
+        onClick={() => {
+          setOpen(false);
+          createPayment();
+        }}
+        className="bg-red-600 hover:bg-red-700 text-white px-6 py-2.5 rounded-full font-bold shadow-md transition-all active:scale-95"
+      >
+        Pay Now
+      </button>
     </div>
   </div>
+</div>
 )}
 
 

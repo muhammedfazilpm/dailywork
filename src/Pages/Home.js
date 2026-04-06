@@ -20,6 +20,7 @@ import axios from "axios";
 import Select from "react-select";
 import toast from "react-hot-toast";
 import { load } from "@cashfreepayments/cashfree-js";
+import { getCashfreeMode } from "../config/appEnv";
 
 function loadScript(src) {
   return new Promise((resolve) => {
@@ -221,7 +222,7 @@ getAllLocation()
         }
 
         const cashfree = await load({
-          mode: "production", // change to "sandbox" in testing
+          mode: getCashfreeMode(),
         });
 
         await cashfree.checkout({

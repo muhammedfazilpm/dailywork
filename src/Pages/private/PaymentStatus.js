@@ -69,7 +69,13 @@ const PaymentStatus = () => {
               Your payment was successful. You can now view contact numbers.
             </p>
             <button
-              onClick={() => navigate(orderId.startsWith("worker_order")?'/home':"/home2")}
+              onClick={() =>
+                navigate(
+                  orderId?.startsWith("worker_order")
+                    ? "/home"
+                    : "/home2?unlock=1"
+                )
+              }
               className="bg-green-600 text-white px-6 py-2 rounded-lg"
             >
               Go Back

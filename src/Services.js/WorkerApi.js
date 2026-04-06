@@ -1,7 +1,6 @@
-
-// let workapi="http://localhost:3000"
-
-let workapi="https://api.kooliapp.in"
+// API base: production default; override with REACT_APP_API_URL (e.g. http://localhost:3000 for local)
+let workapi =
+  process.env.REACT_APP_API_URL || "https://api.kooliapp.in";
 
 let workerRegister=workapi+'/server/user/register/'
 

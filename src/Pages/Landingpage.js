@@ -443,6 +443,7 @@ const organizationSchema = {
         <div className="text-center text-gray-400 text-sm space-y-1">
           <p className="flex items-center justify-center gap-2">
             📞 +91 85902 26483
+            📞 +91 95267 88138
             <a
               href="https://wa.me/918590226483"
               target="_blank"
@@ -453,6 +454,7 @@ const organizationSchema = {
             </a>
           </p>
           <p>✉️ info.kooliapp@gmail.com</p>
+           <p>✉️ fazilfezz@gmail.com</p>
         </div>
 
         {/* Copyright */}

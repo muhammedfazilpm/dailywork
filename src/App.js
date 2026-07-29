@@ -27,6 +27,8 @@ import WorkerPaymentStatus from './Pages/private/worker/WorkerPaymentStatus';
 import BlogPage from './Pages/public/BlogPage';
 import KooliBlog from './Pages/public/BlogPage';
 import WhatsAppFloat from './Components/WhatsAppFloat';
+import WorkerRequests from './Pages/private/worker/WorkerRequests';
+import ProviderRequests from './Pages/private/provider/ProviderRequests';
 
 function App() {
   
@@ -56,6 +58,7 @@ function App() {
 
 
    <Route path='/home' element={<Protectedroutes><Home/></Protectedroutes>}/>
+   <Route path='/requests' element={<Protectedroutes><WorkerRequests/></Protectedroutes>}/>
   
    <Route path='/otp' element={<Otp/>}/>
    <Route path='/profile' element={<Profile/>}/>
@@ -64,6 +67,7 @@ function App() {
    <Route path='/blog' element={<KooliBlog/>}/>
 
    <Route path='/home2' element={<ProtectedRoutespro><Home2/></ProtectedRoutespro>}/>
+   <Route path='/provider-requests' element={<ProtectedRoutespro><ProviderRequests/></ProtectedRoutespro>}/>
    <Route path='/payment-status' element={<PaymentStatus/>}/>
    <Route path='/worker-payment-status' element={<WorkerPaymentStatus/>}/>
    </Routes>

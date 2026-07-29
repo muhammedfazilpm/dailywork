@@ -70,7 +70,8 @@ function Footer() {
 
         {/* Divider */}
         <div className="border-t border-gray-700 mt-8 pt-6 text-center text-sm">
-          © {new Date().getFullYear()} Kooliapp. All rights reserved.
+          <p>© {new Date().getFullYear()} Kooliapp. All rights reserved.</p>
+          <p className="mt-1 text-gray-500">Muhammed Fazil PM</p>
         </div>
       </div>
     </footer>

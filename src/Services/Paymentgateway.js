@@ -1,32 +1,31 @@
 import { useEffect } from "react";
 import { load } from "@cashfreepayments/cashfree-js";
-import { getCashfreeMode } from "../config/appEnv";
+import { runPaymentCheckout } from "../config/appEnv";
 
-export const PaymentGateway = ({ paymentSessionId }) => {
+export const PaymentGateway = ({ paymentSessionId, orderId, paymentData }) => {
 
   useEffect(() => {
 
     const initiatePayment = async () => {
       try {
-        const cashfree = await load({
-          mode: getCashfreeMode(),
-        });
-
-        cashfree.checkout({
-          paymentSessionId: paymentSessionId,
+        await runPaymentCheckout({
+          paymentData: paymentData || {
+            payment_session_id: paymentSessionId,
+            order_id: orderId,
+          },
+          loadCashfree: load,
           redirectTarget: "_self",
         });
-
       } catch (error) {
         console.error("Cashfree checkout error:", error);
       }
     };
 
-    if (paymentSessionId) {
+    if (paymentSessionId || paymentData?.payment_session_id) {
       initiatePayment();
     }
 
-  }, [paymentSessionId]);
+  }, [paymentSessionId, orderId, paymentData]);
 
   return null;
 };

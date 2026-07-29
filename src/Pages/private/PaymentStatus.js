@@ -2,15 +2,20 @@ import React, { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import toast from "react-hot-toast";
-import { verifyPayment, workerJobVerifyPay } from "../../Services.js/WorkerApi";
+import {
+  verifyPayment,
+  workerJobVerifyPay,
+  walletVerify,
+} from "../../Services.js/WorkerApi";
 
 const PaymentStatus = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const token = localStorage.getItem("providertoken");
-  const token2= localStorage.getItem("token");
+  const token2 = localStorage.getItem("token");
 
   const [status, setStatus] = useState("checking");
+  const [balance, setBalance] = useState(null);
 
   const orderId = searchParams.get("order_id");
 
@@ -22,12 +27,22 @@ const PaymentStatus = () => {
 
   const verifyOrder = async () => {
     try {
-      let apiUrl = verifyPayment;
-      let passtoken=token
-      // check order prefix
+      let apiUrl = walletVerify;
+      let passtoken = token || token2;
+
+      // Prefer wallet verify for all new orders; keep legacy prefixes
       if (orderId.startsWith("worker_order")) {
-        passtoken=token2
+        passtoken = token2;
         apiUrl = workerJobVerifyPay;
+      } else if (orderId.startsWith("order_")) {
+        passtoken = token;
+        apiUrl = verifyPayment;
+      } else if (orderId.startsWith("wallet_worker")) {
+        passtoken = token2;
+        apiUrl = walletVerify;
+      } else if (orderId.startsWith("wallet_provider") || orderId.startsWith("wallet_")) {
+        passtoken = token || token2;
+        apiUrl = walletVerify;
       }
 
       const res = await axios.post(
@@ -40,13 +55,28 @@ const PaymentStatus = () => {
 
       if (res?.data?.ok) {
         setStatus("success");
-        toast.success("Payment Successful 🎉");
+        setBalance(res?.data?.balance);
+        toast.success(
+          res?.data?.request
+            ? "Payment successful — request sent"
+            : "Wallet credited successfully"
+        );
       } else {
         setStatus("failed");
       }
     } catch (error) {
       console.error(error);
       setStatus("failed");
+    }
+  };
+
+  const goBack = () => {
+    if (orderId?.startsWith("worker_order") || orderId?.startsWith("wallet_worker")) {
+      navigate("/home");
+    } else if (localStorage.getItem("providertoken")) {
+      navigate("/home2?unlock=1");
+    } else {
+      navigate("/home");
     }
   };
 
@@ -65,17 +95,16 @@ const PaymentStatus = () => {
             <h2 className="text-2xl font-bold text-green-600 mb-4">
               Payment Successful ✅
             </h2>
-            <p className="mb-6">
-              Your payment was successful. You can now view contact numbers.
+            <p className="mb-2">
+              Your wallet was credited. Credits are used to send connection requests.
             </p>
+            {balance !== null && balance !== undefined && (
+              <p className="mb-6 text-sm text-gray-700">
+                Wallet balance: <strong>₹{balance}</strong>
+              </p>
+            )}
             <button
-              onClick={() =>
-                navigate(
-                  orderId?.startsWith("worker_order")
-                    ? "/home"
-                    : "/home2?unlock=1"
-                )
-              }
+              onClick={goBack}
               className="bg-green-600 text-white px-6 py-2 rounded-lg"
             >
               Go Back
@@ -88,11 +117,9 @@ const PaymentStatus = () => {
             <h2 className="text-2xl font-bold text-red-600 mb-4">
               Payment Failed ❌
             </h2>
-            <p className="mb-6">
-              Something went wrong. Please try again.
-            </p>
+            <p className="mb-6">Something went wrong. Please try again.</p>
             <button
-              onClick={() => navigate("/home2")}
+              onClick={goBack}
               className="bg-red-600 text-white px-6 py-2 rounded-lg"
             >
               Try Again

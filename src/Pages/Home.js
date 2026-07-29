@@ -14,13 +14,15 @@ import {
   workerWorkGet,
   locationAll,
   workerGetJobs,
-  workerJobPurchase,
+  requestSend,
+  walletRecharge,
 } from "../Services.js/WorkerApi";
 import axios from "axios";
 import Select from "react-select";
 import toast from "react-hot-toast";
 import { load } from "@cashfreepayments/cashfree-js";
-import { getCashfreeMode } from "../config/appEnv";
+import { runPaymentCheckout } from "../config/appEnv";
+import { Link } from "react-router-dom";
 
 function loadScript(src) {
   return new Promise((resolve) => {
@@ -203,37 +205,68 @@ getAllLocation()
     }
   };
 
-  const handleJobsPayment = async () => {
+  const startJobWalletCheckout = async (pendingRequest) => {
     try {
       const res = await axios.post(
-        workerJobPurchase,
-        { amount: 10 },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        walletRecharge,
+        { amount: 10, pendingRequest },
+        { headers: { Authorization: `Bearer ${token}` } }
       );
-
-      if (res?.status === 200) {
-        const paymentSessionId = res?.data?.data?.payment_session_id;
-
-        if (!paymentSessionId) {
-          toast.error("Payment session not received");
-          return;
-        }
-
-        const cashfree = await load({
-          mode: getCashfreeMode(),
-        });
-
-        await cashfree.checkout({
-          paymentSessionId,
-          redirectTarget: "_self",
-        });
+      const paymentData = res?.data?.data;
+      if (!paymentData?.payment_session_id) {
+        toast.error("Payment session not received");
+        return;
       }
+      await runPaymentCheckout({
+        paymentData,
+        loadCashfree: load,
+        redirectTarget: "_self",
+      });
     } catch (error) {
       console.error(error);
-      toast.error("Try again after some time");
+      toast.error(
+        error?.response?.data?.message || "Could not start wallet recharge"
+      );
     }
+  };
+
+  const handleApplyToJob = async (job) => {
+    const pendingRequest = {
+      requestType: "job_request",
+      jobId: job._id,
+      receiverId: job.providerId,
+    };
+    try {
+      const res = await axios.post(requestSend, pendingRequest, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res?.data?.data?.needPayment) {
+        await startJobWalletCheckout(
+          res.data.data.pendingRequest || pendingRequest
+        );
+        return;
+      }
+      toast.success("Application sent. Waiting for provider to accept.");
+      if (selectedJobLocation?.value) {
+        handleFetchJobs();
+      }
+    } catch (error) {
+      const status = error?.response?.status;
+      const data = error?.response?.data;
+      if (status === 402 || data?.data?.needPayment) {
+        await startJobWalletCheckout(data?.data?.pendingRequest || pendingRequest);
+        return;
+      }
+      if (status === 409) {
+        toast.error("You already applied to this job");
+        return;
+      }
+      toast.error(data?.message || "Failed to apply");
+    }
+  };
+
+  const handleJobsPayment = async () => {
+    toast("Use Apply on a job to send a request. Payment tops up your wallet.");
   };
 
 
@@ -585,8 +618,8 @@ getAllLocation()
 
               <p className="text-sm text-gray-600 mb-4">
                 നിങ്ങളുടെ സ്ഥലത്ത് പോസ്റ്റ് ചെയ്തിട്ടുള്ള ജോലികൾ ഇവിടെ കാണാം.
-                Select a location to see jobs posted by providers. If you have an active
-                subscription, you will also see their contact numbers.
+                Apply with ₹10 from your wallet. Contact unlocks only after the
+                provider accepts (24 hours).
               </p>
 
               <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-end mb-4">
@@ -606,18 +639,13 @@ getAllLocation()
                 >
                   {jobsLoading ? "Loading..." : "Find Jobs"}
                 </button>
+                <Link
+                  to="/requests"
+                  className="px-4 py-2 bg-white border border-gray-300 text-gray-800 rounded-lg text-sm text-center hover:bg-gray-50"
+                >
+                  My Requests
+                </Link>
               </div>
-
-              {jobs.length > 0 && (
-                <div className="mb-4 flex justify-end">
-                  <button
-                    onClick={handleJobsPayment}
-                    className="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 text-sm"
-                  >
-                    Unlock all contacts for 24 hours (₹10)
-                  </button>
-                </div>
-              )}
 
               <div className="space-y-3 max-h-80 overflow-y-auto">
                 {jobs.length === 0 && !jobsLoading && (
@@ -658,28 +686,44 @@ getAllLocation()
                           )}
                         </div>
 
-                        <div className="text-right min-w-[120px]">
-                          {job.contactNo ? (
+                        <div className="text-right min-w-[140px]">
+                          {job.contactNo || job.contactStatus === "unlocked" ? (
                             <>
                               <p className="text-xs text-green-700 font-semibold mb-1">
-                                Contact unlocked
+                                Contact available (24h)
                               </p>
                               <p className="text-sm font-medium text-gray-900">
                                 {job.contactNo}
                               </p>
+                              <div className="mt-2 flex flex-col gap-1">
+                                <a
+                                  href={`tel:${job.contactNo}`}
+                                  className="text-xs text-green-700 underline"
+                                >
+                                  Call
+                                </a>
+                                <a
+                                  href={`https://wa.me/${job.contactNo}`}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="text-xs text-emerald-600 underline"
+                                >
+                                  WhatsApp
+                                </a>
+                              </div>
                             </>
-                          ) : (
-                            <>
+                          ) : job.requestStatus === "pending" ? (
                             <p className="text-xs text-amber-700 font-medium">
-                              Contact number locked
-                              <br />
-                              (complete payment to unlock)
+                              Application pending
                             </p>
-                           
-                            
-                            
-                            </>
-                          
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => handleApplyToJob(job)}
+                              className="px-3 py-2 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700"
+                            >
+                              Apply
+                            </button>
                           )}
                         </div>
                       </div>

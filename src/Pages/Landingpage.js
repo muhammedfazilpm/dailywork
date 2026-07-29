@@ -289,56 +289,60 @@ const organizationSchema = {
       {/* Features Section */}
       <section className="py-16 px-6 bg-gray-50">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-16">{t("How It Works")}</h2>
-          <h2 className="text-2xl font-bold text-center mb-16">
-  {t("പ്രവർത്തന രീതി")}
-</h2>
+          <h2 className="text-3xl font-bold text-center text-slate-800 mb-12">
+            {t("പ്രവർത്തന രീതി")}
+          </h2>
           <div className="grid md:grid-cols-3 gap-8">
-            <div className="p-6 rounded-lg bg-white hover:shadow-md transition-shadow">
-              <div className="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center mb-4">
-                <span className="text-red-600 text-2xl">1</span>
+            <div className="p-8 rounded-xl bg-white shadow-sm hover:shadow-md transition-shadow">
+              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mb-5">
+                <span className="text-red-600 text-xl font-semibold">1</span>
               </div>
-              <h3 className="text-xl font-semibold mb-3">{t("Create a Profile")}</h3>
-              <p className="text-gray-600">{t("Register as a work provider or skilled worker in minutes.")}</p>
-            <h3 className="text-lg font-semibold mb-3">
-  {t("ലോഗിൻ ചെയ്ത് പ്രൊഫൈൽ തുടങ്ങാം")}
-</h3>
-<p className="text-gray-600 text-sm md:text-base leading-relaxed">
-  {t("തൊഴിൽദാതാവായോ തൊഴിലാളിയായോ മിനിറ്റുകൾക്കുള്ളിൽ രജിസ്റ്റർ ചെയ്യാം.")}
-</p>
+              <h3 className="text-xl font-semibold text-slate-800 mb-2">
+                {t("Create a Profile")}
+              </h3>
+              <p className="text-gray-500 mb-5">
+                {t("Register as a work provider or skilled worker in minutes.")}
+              </p>
+              <h3 className="text-lg font-semibold text-slate-800 mb-2">
+                {t("ലോഗിൻ ചെയ്ത് പ്രൊഫൈൽ തുടങ്ങാം")}
+              </h3>
+              <p className="text-gray-600 text-sm md:text-base leading-relaxed">
+                {t("തൊഴിൽദാതാവായോ തൊഴിലാളിയായോ മിനിറ്റുകൾക്കുള്ളിൽ രജിസ്റ്റർ ചെയ്യാം.")}
+              </p>
             </div>
-            <div className="p-6 rounded-lg bg-white hover:shadow-md transition-shadow">
-              <div className="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center mb-4">
-                <span className="text-red-600 text-2xl">2</span>
+            <div className="p-8 rounded-xl bg-white shadow-sm hover:shadow-md transition-shadow">
+              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mb-5">
+                <span className="text-red-600 text-xl font-semibold">2</span>
               </div>
-            <h3 className="text-xl font-semibold mb-3">
-  {t("Get Work or Find Worker")}
-</h3>
-<p className="text-gray-600">
-  {t("Workers can add available work, and users can search and hire skilled professionals.")}
-</p>
-
-<h3 className="text-lg font-semibold mb-3">
-  {t("പണി നോക്കാം   അല്ലെങ്കിൽ പണിക്കാരെ  കണ്ടെത്താം")}
-</h3>
-<p className="text-gray-600 text-sm md:text-base leading-relaxed">
-  {t("തൊഴിലാളികൾക്ക് പണി ആഡ് ചെയ്യാനും   , ഉപഭോക്താക്കൾക്ക് അനുയോജ്യരായ പണിക്കാരെ  കണ്ടെത്തി ജോലിക്കെടുക്കാനും സാധിക്കും.")}
-</p>
+              <h3 className="text-xl font-semibold text-slate-800 mb-2">
+                {t("Send a Request")}
+              </h3>
+              <p className="text-gray-500 mb-5">
+                {t("Find work or workers, then send a request using ₹10 from your wallet. Recharge if balance is low.")}
+              </p>
+              <h3 className="text-lg font-semibold text-slate-800 mb-2">
+                {t("അഭ്യർത്ഥന അയയ്ക്കാം")}
+              </h3>
+              <p className="text-gray-600 text-sm md:text-base leading-relaxed">
+                {t("പണിയോ പണിക്കാരെയോ കണ്ടെത്തി വാലറ്റിൽ നിന്ന് 10 രൂപ ഉപയോഗിച്ച് അഭ്യർത്ഥന അയയ്ക്കാം. ബാലൻസ് കുറവാണെങ്കിൽ റീചാർജ് ചെയ്യാം.")}
+              </p>
             </div>
-            <div className="p-6 rounded-lg bg-white hover:shadow-md transition-shadow">
-              <div className="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center mb-4">
-                <span className="text-red-600 text-2xl">3</span>
+            <div className="p-8 rounded-xl bg-white shadow-sm hover:shadow-md transition-shadow">
+              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mb-5">
+                <span className="text-red-600 text-xl font-semibold">3</span>
               </div>
-<h3 className="text-xl font-semibold mb-3">{t("Unlock Contact")}</h3>
-<p className="text-gray-600">
-  {t("Pay ₹10 to access the worker’s contact for 24 hours.")}
-</p>
-<h3 className="text-lg font-semibold mb-3">
-  {t("കോൺടാക്റ്റ് വിവരങ്ങൾ ലഭ്യമാക്കാം")}
-</h3>
-<p className="text-gray-600 text-sm md:text-base leading-relaxed">
-  {t("വെറും 10 രൂപ നൽകി 24 മണിക്കൂർ നേരത്തേക്ക് തൊഴിലാളിയുടെ ഫോൺ നമ്പർ ലഭ്യമാക്കാം.")}
-</p>
+              <h3 className="text-xl font-semibold text-slate-800 mb-2">
+                {t("Connect After Accept")}
+              </h3>
+              <p className="text-gray-500 mb-5">
+                {t("Contact unlocks for 24 hours only after the other person accepts. Reject or cancel refunds ₹10 to the wallet.")}
+              </p>
+              <h3 className="text-lg font-semibold text-slate-800 mb-2">
+                {t("സ്വീകരിച്ചാൽ ബന്ധപ്പെടാം")}
+              </h3>
+              <p className="text-gray-600 text-sm md:text-base leading-relaxed">
+                {t("മറുപക്ഷം സ്വീകരിച്ചാൽ മാത്രം 24 മണിക്കൂർ നേരത്തേക്ക് കോൺടാക്റ്റ് ലഭ്യമാകും. നിരസിച്ചാലോ റദ്ദാക്കിയാലോ 10 രൂപ വാലറ്റിലേക്ക് തിരികെ ലഭിക്കും.")}
+              </p>
             </div>
           </div>
         </div>
@@ -459,7 +463,8 @@ const organizationSchema = {
 
         {/* Copyright */}
         <div className="text-gray-400 text-sm text-center">
-          © {new Date().getFullYear()} Kooliapp. {t("All rights reserved.")}
+          <p>© {new Date().getFullYear()} Kooliapp. {t("All rights reserved.")}</p>
+          <p className="mt-1 text-gray-500">Muhammed Fazil PM</p>
         </div>
 
       </div>

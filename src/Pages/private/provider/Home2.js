@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, Link } from "react-router-dom";
 import Navbar from "../../../Components/Layout/Navbar";
 import Footer from "../../../Components/Layout/Footer";
 import { FaPhoneAlt, FaWhatsapp } from "react-icons/fa";
@@ -7,11 +7,10 @@ import {jwtDecode} from "jwt-decode";
 import axios from "axios";
 import Select from "react-select";
 import Swal from "sweetalert2";
-import { PaymentGateway } from "../../../Services/Paymentgateway";
 import { load } from "@cashfreepayments/cashfree-js";
-import { getCashfreeMode } from "../../../config/appEnv";
+import { runPaymentCheckout } from "../../../config/appEnv";
 import { FaSearch, FaPlus, FaMapMarkerAlt, FaUser, FaRupeeSign, FaBriefcase } from "react-icons/fa";
-import { Allwork, locationAll ,workersListBylocation,purchase, verifyPayment, providerJobAdd} from "../../../Services.js/WorkerApi";
+import { Allwork, locationAll ,workersListBylocation, requestSend, walletRecharge, providerJobAdd} from "../../../Services.js/WorkerApi";
 import toast from "react-hot-toast";
 
 
@@ -21,15 +20,11 @@ import toast from "react-hot-toast";
 const PROVIDER_WORKER_SEARCH_KEY = "providerWorkerSearch";
 
 function Home2() {
-  let cashfree;
   const token = localStorage.getItem("providertoken");
   const [searchParams, setSearchParams] = useSearchParams();
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [showWorkerModal, setShowWorkerModal] = useState(false);
   const [showPostJobModal, setShowPostJobModal] = useState(false);
-
-  const [orderGenerated, setOrderGenerated] = useState({})
-  const [paymentSessionId, setPaymentSessionId] = useState(null)
 
 
   const [search, setSearch] = useState("");
@@ -46,6 +41,8 @@ function Home2() {
   const [postedJobs, setPostedJobs] = useState([]);
   const [workersMock,setWorkersMock]=useState([])
   const [open, setOpen] = useState(false);
+  const [requestTarget, setRequestTarget] = useState(null);
+  const [sendingRequest, setSendingRequest] = useState(false);
 
   const fetchWorkersForSearch = useCallback(
     async (locationId, workId) => {
@@ -121,21 +118,13 @@ const getAllLocation=async()=>{
     }
   }
 
-const createPayment = async () => {
-  if (!selectedLocation?.value || !selectedWork?.value) {
-    toast.error(
-      "Close this dialog, use Find Worker again, and pick location + work before paying."
-    );
-    setOpen(false);
-    return;
-  }
+const startWalletCheckout = async (pendingRequest) => {
   try {
     const res = await axios.post(
-      purchase,
+      walletRecharge,
       {
         amount: 10,
-        locationId: selectedLocation.value,
-        workId: selectedWork.value,
+        pendingRequest,
       },
       {
         headers: {
@@ -144,14 +133,14 @@ const createPayment = async () => {
       }
     );
 
-    if (res?.status === 200) {
-      const paymentSessionId = res?.data?.data?.payment_session_id;
+    const paymentData = res?.data?.data;
+    const paymentSessionId = paymentData?.payment_session_id;
+    if (!paymentSessionId) {
+      toast.error("Payment session not received");
+      return;
+    }
 
-      if (!paymentSessionId) {
-        toast.error("Payment session not received");
-        return;
-      }
-
+    if (selectedLocation?.value && selectedWork?.value) {
       sessionStorage.setItem(
         PROVIDER_WORKER_SEARCH_KEY,
         JSON.stringify({
@@ -165,23 +154,88 @@ const createPayment = async () => {
           state: selectedLocation.state,
         })
       );
-
-      cashfree = await load({
-        mode: getCashfreeMode(),
-      });
-
-      cashfree.checkout({
-        paymentSessionId: paymentSessionId,
-        redirectTarget: "_self",
-      });
     }
+
+    await runPaymentCheckout({
+      paymentData,
+      loadCashfree: load,
+      redirectTarget: "_self",
+    });
   } catch (error) {
     console.error(error);
-    const msg =
+    toast.error(
       error?.response?.data?.message ||
-      "Payment could not be started. Check location and work type, then try again.";
-    toast.error(msg);
+        "Could not start wallet recharge. Try again."
+    );
   }
+};
+
+const sendWorkRequest = async (worker) => {
+  const receiverId = worker?.userId?._id || worker?.userId;
+  if (!receiverId) {
+    toast.error("Worker id missing");
+    return;
+  }
+
+  const pendingRequest = {
+    requestType: "worker_request",
+    receiverId,
+    workId: selectedWork?.value || null,
+    locationId: selectedLocation?.value || null,
+    userWorkId: worker?._id || null,
+  };
+
+  setSendingRequest(true);
+  try {
+    const res = await axios.post(
+      requestSend,
+      pendingRequest,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+
+    // Insufficient balance → payment
+    if (res?.status === 402 || res?.data?.data?.needPayment) {
+      setOpen(false);
+      await startWalletCheckout(
+        res?.data?.data?.pendingRequest || pendingRequest
+      );
+      return;
+    }
+
+    toast.success("Request sent. Waiting for worker to accept.");
+    setOpen(false);
+    setRequestTarget(null);
+    if (selectedLocation?.value && selectedWork?.value) {
+      const list = await fetchWorkersForSearch(
+        selectedLocation.value,
+        selectedWork.value
+      );
+      setWorkersMock(list);
+    }
+  } catch (error) {
+    const status = error?.response?.status;
+    const data = error?.response?.data;
+    if (status === 402 || data?.data?.needPayment) {
+      setOpen(false);
+      await startWalletCheckout(data?.data?.pendingRequest || pendingRequest);
+      return;
+    }
+    if (status === 409) {
+      toast.error("You already have a pending request to this worker");
+      return;
+    }
+    toast.error(data?.message || "Failed to send request");
+  } finally {
+    setSendingRequest(false);
+  }
+};
+
+const createPayment = async () => {
+  if (requestTarget) {
+    await sendWorkRequest(requestTarget);
+    return;
+  }
+  toast.error("Select a worker first");
 };
 
 
@@ -336,6 +390,12 @@ useEffect(() => {
               <FaPlus className="text-sm" />
               Post Job
             </button>
+            <Link
+              to="/provider-requests"
+              className="px-4 py-2 bg-white border border-gray-300 text-gray-800 rounded-lg hover:bg-gray-50 transition flex items-center gap-2 shadow-sm"
+            >
+              Requests
+            </Link>
           </div>
         </div>
 
@@ -586,7 +646,7 @@ useEffect(() => {
                     </div>
                  
 
-{worker?.userId?.contactNo ? (
+{worker?.userId?.contactNo || worker?.contactStatus === "unlocked" ? (
     <>
     <h4>Contact :- {worker.userId.contactNo}</h4>
      <div className="mt-4 flex gap-3">
@@ -613,13 +673,22 @@ useEffect(() => {
   </div>
     </>
  
+) : worker?.requestStatus === "pending" ? (
+  <button
+    disabled
+    className="w-full mt-4 flex items-center justify-center gap-2 px-4 py-2.5 bg-amber-500 text-white rounded-lg opacity-90 cursor-default"
+  >
+    Request Pending
+  </button>
 ) : (
   <button
-    onClick={() => setOpen(true)}
+    onClick={() => {
+      setRequestTarget(worker);
+      setOpen(true);
+    }}
     className="w-full mt-4 flex items-center justify-center gap-2 px-4 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
   >
-    <FaPhoneAlt />
-    Get Number
+    Send Request
   </button>
 )}
 
@@ -748,50 +817,49 @@ useEffect(() => {
       {open && (
   <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
   <div className="bg-white rounded-xl p-6 w-full max-w-sm shadow-2xl">
-    <h2 className="text-xl font-bold mb-3 text-gray-900">Unlock Contact Details</h2>
+    <h2 className="text-xl font-bold mb-3 text-gray-900">Send Work Request</h2>
     
     <div className="space-y-3 mb-6">
       <p className="text-sm text-gray-600 leading-relaxed">
-        Pay once to view worker phone numbers for <strong>this location</strong> and <strong>work type</strong>. Access is valid for 24 hours.
+        Spend <strong>₹10 from your wallet</strong> to send a request to{" "}
+        <strong>{requestTarget?.userId?.name || "this worker"}</strong>.
+        Contact details unlock only after they accept (24 hours).
       </p>
       
       <div className="bg-blue-50 p-3 rounded-lg">
-        <p className="text-blue-900 font-semibold">₹10 — Unlimited access for 24h</p>
+        <p className="text-blue-900 font-semibold">₹10 — deducted from wallet</p>
+        <p className="text-blue-800 text-xs mt-1">If wallet balance is low, you will recharge ₹10 first.</p>
       </div>
 
       <p className="text-sm text-gray-700 font-medium leading-relaxed border-t pt-3">
-      ₹10 പേയ്‌ ചെയ്താൽ ഈ സെർച്ചിലെ നമ്പറുകൾ ഇപ്പൊ തന്നെ കാണാം. 24 മണിക്കൂർ വരെ ഈ ഓഫർ ഉണ്ടാകും.      </p>
+      അഭ്യർത്ഥന അയച്ച് വർക്കർ സ്വീകരിച്ചാൽ മാത്രമേ നമ്പർ കാണൂ. നിരസിച്ചാൽ ₹10 വാലറ്റിലേക്ക് തിരികെ.
+      </p>
     </div>
 
     <div className="flex justify-end items-center gap-4">
       <button
-        onClick={() => setOpen(false)}
+        onClick={() => {
+          setOpen(false);
+          setRequestTarget(null);
+        }}
         className="text-gray-600 hover:text-black font-medium transition-colors"
       >
         Cancel
       </button>
 
       <button
+        disabled={sendingRequest}
         onClick={() => {
-          setOpen(false);
           createPayment();
         }}
-        className="bg-red-600 hover:bg-red-700 text-white px-6 py-2.5 rounded-full font-bold shadow-md transition-all active:scale-95"
+        className="bg-red-600 hover:bg-red-700 text-white px-6 py-2.5 rounded-full font-bold shadow-md transition-all active:scale-95 disabled:opacity-50"
       >
-        Pay Now
+        {sendingRequest ? "Sending…" : "Send Request"}
       </button>
     </div>
   </div>
 </div>
 )}
-
-
-{
-  paymentSessionId &&
-  <PaymentGateway 
-     paymentSessionId={paymentSessionId}
-  />
-}
 
 
       <Footer />

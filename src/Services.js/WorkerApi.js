@@ -2,6 +2,10 @@
 let workapi =
   process.env.REACT_APP_API_URL || "https://api.kooliapp.in";
 
+  // let workapi =
+  // process.env.REACT_APP_API_URL || "http://localhost:3001";
+
+
 let workerRegister=workapi+'/server/user/register/'
 
 let workerLogin=workapi+'/server/user/login'
@@ -43,6 +47,18 @@ let workerGetJobs=workapi+'/server/worker/getJobs'
 let workerJobPurchase=workapi+'/server/worker/job/purchase'
 let workerJobVerifyPay=workapi+'/server/worker/job/verifyPay'
 
+// Wallet + Request APIs
+let walletBalance=workapi+'/server/wallet/balance'
+let walletTransactions=workapi+'/server/wallet/transactions'
+let walletRecharge=workapi+'/server/wallet/recharge'
+let walletVerify=workapi+'/server/wallet/verify'
+let requestSend=workapi+'/server/request/send'
+let requestIncoming=workapi+'/server/request/incoming'
+let requestOutgoing=workapi+'/server/request/outgoing'
+let requestAccept=(id)=>workapi+`/server/request/${id}/accept`
+let requestReject=(id)=>workapi+`/server/request/${id}/reject`
+let requestCancel=(id)=>workapi+`/server/request/${id}/cancel`
+
 let worker_register=workapi+'/api/worker/register-provider'
  
 let worke_provider_login=workapi+'/api/worker/login-provider'
@@ -82,5 +98,15 @@ module.exports={
     providerJobAdd,
     workerGetJobs,
     workerJobPurchase,
-    workerJobVerifyPay
+    workerJobVerifyPay,
+    walletBalance,
+    walletTransactions,
+    walletRecharge,
+    walletVerify,
+    requestSend,
+    requestIncoming,
+    requestOutgoing,
+    requestAccept,
+    requestReject,
+    requestCancel,
 }

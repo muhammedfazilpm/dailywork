@@ -62,6 +62,7 @@ function Footer() {
               <div className="flex items-center gap-3">
                 <FaEnvelope />
                 <span>info.kooliapp@gmail.com</span>
+                  <span>9526788138</span>
               </div>
             </div>
           </div>

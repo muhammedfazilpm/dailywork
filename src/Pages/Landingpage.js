@@ -458,6 +458,7 @@ const organizationSchema = {
             </a>
           </p>
           <p>✉️ info.kooliapp@gmail.com</p>
+            <p>✉️ 9526788138</p>
           
         </div>
 

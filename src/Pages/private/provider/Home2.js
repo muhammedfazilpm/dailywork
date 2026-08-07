@@ -7,7 +7,6 @@ import {jwtDecode} from "jwt-decode";
 import axios from "axios";
 import Select from "react-select";
 import Swal from "sweetalert2";
-import { load } from "@cashfreepayments/cashfree-js";
 import { runPaymentCheckout } from "../../../config/appEnv";
 import { FaSearch, FaPlus, FaMapMarkerAlt, FaUser, FaRupeeSign, FaBriefcase } from "react-icons/fa";
 import { Allwork, locationAll ,workersListBylocation, requestSend, walletRecharge, providerJobAdd} from "../../../Services.js/WorkerApi";
@@ -133,10 +132,12 @@ const startWalletCheckout = async (pendingRequest) => {
       }
     );
 
-    const paymentData = res?.data?.data;
-    const paymentSessionId = paymentData?.payment_session_id;
-    if (!paymentSessionId) {
-      toast.error("Payment session not received");
+    // Backend: { success, data: { order_id, razorpay_order_id, amount, key, ... } }
+    const paymentData = res?.data?.data || res?.data;
+    if (!paymentData?.razorpay_order_id && !paymentData?.order_id) {
+      toast.error(
+        res?.data?.message || "Payment order not received from server"
+      );
       return;
     }
 
@@ -158,13 +159,21 @@ const startWalletCheckout = async (pendingRequest) => {
 
     await runPaymentCheckout({
       paymentData,
-      loadCashfree: load,
+      prefill: {
+        name: profile?.name || "",
+        contact: profile?.contactNo || profile?.phone || "",
+      },
       redirectTarget: "_self",
     });
   } catch (error) {
     console.error(error);
+    if (error?.message === "Payment cancelled") {
+      toast("Payment cancelled");
+      return;
+    }
     toast.error(
       error?.response?.data?.message ||
+        error?.message ||
         "Could not start wallet recharge. Try again."
     );
   }
@@ -247,7 +256,7 @@ const createPayment = async () => {
     getAllWork();
   }, []);
 
-  // After Cashfree redirect + verify: refresh workers for the same location + work (24h unlock)
+  // After Razorpay + verify: refresh workers for the same location + work (24h unlock)
   useEffect(() => {
     if (searchParams.get("unlock") !== "1") return;
 
@@ -288,7 +297,7 @@ const createPayment = async () => {
         const list = await fetchWorkersForSearch(locationId, workId);
         setWorkersMock(list);
         setShowWorkerModal(true);
-        toast.success("Payment verified — contacts are unlocked for this search (24 hours).");
+        toast.success("Payment done — request sent. Contact unlocks after worker accepts.");
       } catch (e) {
         toast.error(
           e?.response?.data?.message || "Could not refresh worker list."

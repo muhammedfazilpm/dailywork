@@ -9,8 +9,6 @@ import {
   updateWork,
   addAadhar,
   verifyAadhar,
-  verifyAddress,
-  verifyPayment,
   workerWorkGet,
   locationAll,
   workerGetJobs,
@@ -20,19 +18,8 @@ import {
 import axios from "axios";
 import Select from "react-select";
 import toast from "react-hot-toast";
-import { load } from "@cashfreepayments/cashfree-js";
 import { runPaymentCheckout } from "../config/appEnv";
 import { Link } from "react-router-dom";
-
-function loadScript(src) {
-  return new Promise((resolve) => {
-    const script = document.createElement("script");
-    script.src = src;
-    script.onload = () => resolve(true);
-    script.onerror = () => resolve(false);
-    document.body.appendChild(script);
-  });
-}
 
 function Home() {
   const token = localStorage.getItem("token");
@@ -212,20 +199,31 @@ getAllLocation()
         { amount: 10, pendingRequest },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      const paymentData = res?.data?.data;
-      if (!paymentData?.payment_session_id) {
-        toast.error("Payment session not received");
+      const paymentData = res?.data?.data || res?.data;
+      if (!paymentData?.razorpay_order_id && !paymentData?.order_id) {
+        toast.error(
+          res?.data?.message || "Payment order not received from server"
+        );
         return;
       }
       await runPaymentCheckout({
         paymentData,
-        loadCashfree: load,
+        prefill: {
+          name: profile?.name || "",
+          contact: profile?.contactNo || profile?.phone || "",
+        },
         redirectTarget: "_self",
       });
     } catch (error) {
       console.error(error);
+      if (error?.message === "Payment cancelled") {
+        toast("Payment cancelled");
+        return;
+      }
       toast.error(
-        error?.response?.data?.message || "Could not start wallet recharge"
+        error?.response?.data?.message ||
+          error?.message ||
+          "Could not start wallet recharge"
       );
     }
   };
@@ -411,48 +409,6 @@ getAllLocation()
       // getProfiles();
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to verify Aadhaar");
-    }
-  };
-
-  /** ---------------- PAYMENT ---------------- **/
-  const handlePay = async () => {
-    const ok = await loadScript("https://checkout.razorpay.com/v1/checkout.js");
-    if (!ok) return toast.error("Razorpay SDK failed to load");
-
-    try {
-      const resp = await axios.post(
-        verifyAddress,
-        { amount: 299 },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      const order = resp.data;
-
-      const options = {
-        key: process.env.REACT_APP_RAZORPAY_KEY_ID,
-        amount: order.amount,
-        currency: order.currency,
-        name: "Demo Shop",
-        description: "Test purchase",
-        order_id: order.id,
-        handler: async function (response) {
-          const verify = await axios.post(verifyPayment, response, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          if (verify.data.ok) toast.success("Payment verified!");
-          else toast.error("Verification failed");
-        },
-        prefill: {
-          name: profile.name || "Test User",
-          email: profile.email || "test@example.com",
-          contact: profile.phone || "9999999999",
-        },
-        theme: { color: "#dc2626" },
-      };
-
-      new window.Razorpay(options).open();
-    } catch (err) {
-      toast.error("Something went wrong while creating order");
     }
   };
 

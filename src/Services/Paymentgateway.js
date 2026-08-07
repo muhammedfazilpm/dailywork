@@ -1,31 +1,24 @@
 import { useEffect } from "react";
-import { load } from "@cashfreepayments/cashfree-js";
 import { runPaymentCheckout } from "../config/appEnv";
 
-export const PaymentGateway = ({ paymentSessionId, orderId, paymentData }) => {
-
+export const PaymentGateway = ({ paymentData, orderId, prefill }) => {
   useEffect(() => {
-
     const initiatePayment = async () => {
       try {
         await runPaymentCheckout({
-          paymentData: paymentData || {
-            payment_session_id: paymentSessionId,
-            order_id: orderId,
-          },
-          loadCashfree: load,
+          paymentData: paymentData || { order_id: orderId },
+          prefill,
           redirectTarget: "_self",
         });
       } catch (error) {
-        console.error("Cashfree checkout error:", error);
+        console.error("Razorpay checkout error:", error);
       }
     };
 
-    if (paymentSessionId || paymentData?.payment_session_id) {
+    if (paymentData?.razorpay_order_id || paymentData?.dummy) {
       initiatePayment();
     }
-
-  }, [paymentSessionId, orderId, paymentData]);
+  }, [paymentData, orderId, prefill]);
 
   return null;
 };
